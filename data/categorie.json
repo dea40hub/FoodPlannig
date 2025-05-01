@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "nome": "Antipasti"
+  },
+  {
+    "id": 2,
+    "nome": "Primi"
+  },
+  {
+    "id": 3,
+    "nome": "Secondi"
+  },
+  {
+    "id": 4,
+    "nome": "Pizze"
+  },
+  {
+    "id": 5,
+    "nome": "Dolci"
+  },
+  {
+    "id": 6,
+    "nome": "Bevande"
+  }
+]

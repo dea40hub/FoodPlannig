@@ -1,0 +1,311 @@
+/* CassaPage.css */
+
+.cassa-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+/* Header */
+.cassa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #343a40; /* Dark background */
+    color: white;
+    flex-shrink: 0;
+}
+
+.header-left {
+    font-weight: bold;
+}
+
+.header-center {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.header-center .btn {
+    background-color: #dc3545; /* Red buttons */
+    color: white;
+    border: none;
+}
+
+.header-right {
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.header-right span {
+    display: block;
+}
+
+/* Body */
+.cassa-body {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scroll */
+}
+
+/* Sidebar Left */
+.cassa-sidebar-left {
+    width: 200px;
+    background-color: #343a40; /* Dark background */
+    color: white;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+.btn-conto {
+    background-color: #28a745; /* Green */
+    color: white;
+    border: none;
+    margin-bottom: 1rem;
+    text-align: center;
+    padding: 1rem 0.5rem;
+}
+
+.category-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+
+.category-button {
+    background-color: #495057;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.category-button.active {
+    background-color: #ffc107; /* Orange for active */
+    color: #333;
+}
+
+.category-button:hover {
+    background-color: #6c757d;
+}
+
+/* Main Content */
+.cassa-main {
+    flex-grow: 1;
+    padding: 1rem;
+    background-color: #e9ecef;
+    overflow-y: auto;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.product-card {
+    background-color: #6c757d; /* Blue-grey background */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 1rem 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100px;
+    transition: transform 0.2s ease;
+}
+
+.product-card:hover {
+    transform: scale(1.03);
+}
+
+.product-name {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-price {
+    font-weight: bold;
+}
+
+/* Sidebar Right */
+.cassa-sidebar-right {
+    width: 300px;
+    background-color: #dee2e6;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+.order-summary {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    flex-grow: 1; /* Takes available space */
+    display: flex;
+    flex-direction: column;
+}
+
+.order-total-display {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: right;
+    margin-bottom: 0.5rem;
+    color: #007bff;
+}
+
+.order-details {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ced4da;
+    padding-bottom: 0.5rem;
+}
+
+.order-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Takes available space */
+    overflow-y: auto; /* Scroll for items */
+    max-height: 300px; /* Limit height */
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #ced4da;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+}
+
+.item-info span {
+    display: block;
+}
+
+.item-actions button {
+    background: none;
+    border: 1px solid #ced4da;
+    color: #333;
+    cursor: pointer;
+    font-size: 0.8rem;
+    width: 20px;
+    height: 20px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 3px;
+    margin-left: 3px;
+}
+
+.item-actions button:hover {
+    background-color: #f1f1f1;
+}
+
+.item-actions button:last-child {
+    color: #dc3545;
+}
+
+.keypad-actions {
+    margin-top: auto; /* Push to bottom */
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.keypad-button {
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.keypad-button:hover {
+    background-color: #e2e6ea;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.action-button {
+    padding: 0.75rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.action-button:hover {
+    background-color: #0056b3;
+}
+
+/* Footer */
+.cassa-footer {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #e9ecef;
+    border-top: 1px solid #ced4da;
+    flex-shrink: 0;
+    overflow-x: auto; /* Scroll if too many buttons */
+}
+
+.footer-button {
+    padding: 0.5rem 1rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.footer-button:hover {
+    background-color: #5a6268;
+}
+
+/* General Button Styles (override if needed) */
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.9rem;
+}
+

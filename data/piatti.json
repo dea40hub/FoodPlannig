@@ -1,0 +1,87 @@
+[
+  {
+    "id": 1,
+    "nome": "Bruschette",
+    "categoria_id": 1
+  },
+  {
+    "id": 2,
+    "nome": "Prosciutto e Melone",
+    "categoria_id": 1
+  },
+  {
+    "id": 3,
+    "nome": "Caprese",
+    "categoria_id": 1
+  },
+  {
+    "id": 4,
+    "nome": "Spaghetti al Pomodoro",
+    "categoria_id": 2
+  },
+  {
+    "id": 5,
+    "nome": "Lasagne alla Bolognese",
+    "categoria_id": 2
+  },
+  {
+    "id": 6,
+    "nome": "Risotto ai Funghi",
+    "categoria_id": 2
+  },
+  {
+    "id": 7,
+    "nome": "Bistecca ai Ferri",
+    "categoria_id": 3
+  },
+  {
+    "id": 8,
+    "nome": "Pollo alla Griglia",
+    "categoria_id": 3
+  },
+  {
+    "id": 9,
+    "nome": "Salmone al Forno",
+    "categoria_id": 3
+  },
+  {
+    "id": 10,
+    "nome": "Margherita",
+    "categoria_id": 4
+  },
+  {
+    "id": 11,
+    "nome": "Diavola",
+    "categoria_id": 4
+  },
+  {
+    "id": 12,
+    "nome": "Quattro Stagioni",
+    "categoria_id": 4
+  },
+  {
+    "id": 13,
+    "nome": "Tiramisù",
+    "categoria_id": 5
+  },
+  {
+    "id": 14,
+    "nome": "Panna Cotta",
+    "categoria_id": 5
+  },
+  {
+    "id": 15,
+    "nome": "Acqua Naturale",
+    "categoria_id": 6
+  },
+  {
+    "id": 16,
+    "nome": "Coca Cola",
+    "categoria_id": 6
+  },
+  {
+    "id": 17,
+    "nome": "Vino Rosso della Casa",
+    "categoria_id": 6
+  }
+]
