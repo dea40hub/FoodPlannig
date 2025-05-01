@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function LoginForm() {
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!username.trim()) {
-      setError('Il nome del cameriere è obbligatorio.');
+      setError("Il nome del cameriere è obbligatorio.");
       return;
     }
 
     try {
       setIsLoading(true);
-      
-      // Chiamata API reale per verificare/creare il cameriere
+
+      // Chiamata API reale (commentata per test locale)
+      /*
       const response = await fetch('/api/camerieri', {
         method: 'POST',
         headers: {
@@ -27,20 +28,29 @@ function LoginForm() {
         },
         body: JSON.stringify({ nome: username.trim() }),
       });
-      
+  
       const data = await response.json();
-      
+  
       if (!response.ok) {
         throw new Error(data.error || 'Errore durante il login');
       }
+      */
 
-      // Salva l'ID e il nome del cameriere in localStorage
-      localStorage.setItem('loggedInUser', data.nome);
-      localStorage.setItem('loggedInUserId', data.id);
+      // ✅ Simulazione risposta API
+      const data = {
+        id: Math.floor(Math.random() * 1000),
+        nome: username.trim(),
+      };
 
-      navigate('/sala'); // Reindirizza alla pagina della sala
+      localStorage.setItem("loggedInUser", data.nome);
+      localStorage.setItem("loggedInUserId", data.id);
+      sessionStorage.setItem('currentCameriere', JSON.stringify(data));
+
+      console.log("Cameriere loggato:", data.nome);
+
+      navigate("/sala");
     } catch (err) {
-      setError(err.message || 'Errore durante il login. Riprova.');
+      setError(err.message || "Errore durante il login. Riprova.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -69,10 +79,10 @@ function LoginForm() {
           <button
             type="submit"
             className="btn btn-primary w-full"
-            style={{width: '100%'}} // Aggiunto stile inline per compatibilità
+            style={{ width: "100%" }} // Aggiunto stile inline per compatibilità
             disabled={isLoading}
           >
-            {isLoading ? 'Accesso in corso...' : 'Entra'}
+            {isLoading ? "Accesso in corso..." : "Entra"}
           </button>
         </form>
       </div>
@@ -81,4 +91,3 @@ function LoginForm() {
 }
 
 export default LoginForm;
-
