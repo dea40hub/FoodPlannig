@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import './LoginForm.css';
+import logo from "../assets/logo-vendolo-200.png";
 
 function LoginForm() {
   const [username, setUsername] = useState("");
@@ -59,6 +61,13 @@ function LoginForm() {
 
   return (
     <div className="login-container">
+      <div className="logo-wrapper" style={{ textAlign: "center", marginBottom: "1rem" }}>
+      <img
+        src={logo}
+        alt="Logo Vendolo"
+        style={{ maxWidth: "150px", height: "auto" }}
+      />
+    </div>
       <div className="login-card">
         <h2 className="login-title">Login Cameriere</h2>
         <form onSubmit={handleLogin}>

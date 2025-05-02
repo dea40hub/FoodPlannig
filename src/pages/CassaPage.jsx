@@ -9,6 +9,23 @@ function CassaPage() {
     const [orderTotal, setOrderTotal] = useState(0);
     const [selectedTable, setSelectedTable] = useState(null); // Aggiungere logica per selezionare tavolo
 
+    // Simula il caricamento ordinazioni
+    useEffect(() => {
+        if (!localStorage.getItem('categorie')) {
+          localStorage.setItem('categorie', JSON.stringify([
+            { id: 1, nome: 'Pizza' },
+            { id: 2, nome: 'Bevande' }
+          ]));
+        }
+      
+        if (!localStorage.getItem('piatti')) {
+          localStorage.setItem('piatti', JSON.stringify([
+            { id: 101, nome: 'Margherita', categoria_id: 1, prezzo: 6.5 },
+            { id: 102, nome: 'Coca Cola', categoria_id: 2, prezzo: 2.0 }
+          ]));
+        }
+      }, []);
+
     // Simula il caricamento di categorie e prodotti
     useEffect(() => {
         // In un'applicazione reale, questi dati verrebbero caricati dal backend
