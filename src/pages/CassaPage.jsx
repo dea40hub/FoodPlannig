@@ -90,7 +90,7 @@ function CassaPage() {
         <div className="cassa-page">
             <header className="cassa-header">
                 {/* Intestazione simile all'immagine */} 
-                <div className="header-left">FIRESHOP.NET</div>
+                <div className="header-left">VENDOLO.DEA40.IT</div>
                 <div className="header-center">
                     {/* Pulsanti Tavoli / Asporto */} 
                     <button className="btn">Tavoli & Sale</button>

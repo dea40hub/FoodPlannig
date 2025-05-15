@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Placeholder: Simula chiamata API per ottenere categorie e piatti
-async function fetchCategorieEPiatti() {
+async function fetchCategorieEPiatti_old() {
   console.log("Fetching categorie e piatti...");
   await new Promise(resolve => setTimeout(resolve, 300)); // Simula attesa API
   // Dati fittizi basati sullo schema DB
@@ -38,6 +38,55 @@ async function fetchCategorieEPiatti() {
   };
 }
 
+// Placeholder: Simula chiamata API per ottenere categorie e piatti
+async function fetchCategorieEPiatti() {
+  console.log("Fetching categorie e piatti...");
+  
+  //const url = "http://localhost/VendoloApi/api/test/getMenuCompletoPerFamiglia";
+  const url = "https://vendoloapi.dea40.it/api/test/getMenuCompletoPerFamiglia";
+
+  const headers = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    //Authorization: `Bearer ${userToken}`, // Usa un token
+  };
+
+  console.log("🔹 Endpoint finale:", url);
+  console.log("🔹 Headers inviati:", headers);
+  console.log(
+    "🚀 Fetch sta per inviare la richiesta della lista dei tavoli della sala ..."
+  );
+
+  const payload = {
+    IdCompany: "591C7617-DF68-4C82-9EF0-7DEBF5C71DE4",
+    IdCategoria: "64198111-31AB-4772-8D30-08E26C502D9F"
+  };
+  console.log("🔹 Payload inviato:", payload);
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(payload),
+  });
+
+  console.log("✅ Response ricevuta con status:", response.status);
+  console.log("✅ Response ricevuta con status text:", response.statusText);
+  console.log("✅ Response headers:", response.headers);
+  console.log("✅ Response body:", response.body);
+
+  if (!response.ok) {
+    throw new Error(
+      `Errore nella fetch: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const json = await response.json();
+  console.log("✅ JSON ricevuto:", json);
+  const menuData = json.menu;
+  console.log("📦 Menu ricevuto:", menuData);
+  return menuData;
+}
+
 function PiattiSelector({ onPiattiChange }) {
   const [categoriePiatti, setCategoriePiatti] = useState({});
   const [selectedCategoria, setSelectedCategoria] = useState(null);
@@ -69,7 +118,7 @@ function PiattiSelector({ onPiattiChange }) {
     setSelectedPiatti(prev => {
       const newState = { ...prev };
       if (checked) {
-        newState[piatto.id] = { piattoId: piatto.id, nome: piatto.nome, quantita: 1, turno: 'T1' }; // Default a 1 e T1
+        newState[piatto.id] = { piattoId: piatto.ProductId, nome: piatto.nome, quantita: 1, turno: 'T1' }; // Default a 1 e T1
       } else {
         delete newState[piatto.id];
       }
