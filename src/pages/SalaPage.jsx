@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import TavoliGrid from '../components/TavoliGrid';
-import ComandaModal from '../components/ComandaModal';
+import React, { useState, useEffect } from "react";
+import Header from "../components/Header";
+import TavoliGrid from "../components/TavoliGrid";
+import ComandaModal from "../components/ComandaModal";
 
 function SalaPage() {
   const [selectedTavolo, setSelectedTavolo] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("📍 selectedTavolo:", selectedTavolo);
+    console.log("📍 isModalOpen:", isModalOpen);
+  }, [selectedTavolo, isModalOpen]);
 
   // Funzione per gestire la selezione di un tavolo
   const handleSelectTavolo = (tavolo) => {
@@ -16,12 +21,14 @@ function SalaPage() {
   // Funzione per chiudere il modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedTavolo(null); // Deseleziona il tavolo quando il modal si chiude
+    // setSelectedTavolo(null); // Deseleziona il tavolo quando il modal si chiude
   };
 
   // Funzione chiamata dopo il salvataggio della comanda
   const handleSaveComanda = (comandaSalvata) => {
     console.log("Comanda salvata/aggiornata:", comandaSalvata);
+    // setIsModalOpen(false);
+    // setSelectedTavolo(null);
     // Qui potresti voler aggiornare lo stato dei tavoli se necessario,
     // ma TavoliGrid si aggiorna già periodicamente
   };
@@ -44,4 +51,3 @@ function SalaPage() {
 }
 
 export default SalaPage;
-
