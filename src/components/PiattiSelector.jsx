@@ -43,7 +43,7 @@ async function fetchCategorieEPiatti() {
   console.log("Fetching categorie e piatti...");
 
   //const url = "http://localhost/VendoloApi/api/test/getMenuCompletoPerFamiglia";
-  const url = "https://vendoloapi.dea40.it/api/test/getMenuCompletoPerFamiglia";
+  const url = "https://vendoloapitest.dea40.it/api/test/getMenuCompletoPerFamiglia";
 
   const headers = {
     Accept: "application/json",
@@ -58,7 +58,7 @@ async function fetchCategorieEPiatti() {
   );
 
   const payload = {
-    IdCompany: "591C7617-DF68-4C82-9EF0-7DEBF5C71DE4",
+    IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327",
     IdCategoria: "64198111-31AB-4772-8D30-08E26C502D9F",
   };
   console.log("🔹 Payload inviato:", payload);

@@ -171,7 +171,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       }
 
       const comandaData = {
-        companyId: "591C7617-DF68-4C82-9EF0-7DEBF5C71DE4",
+        companyId: "4b848a8a-0f89-446d-bbd8-37468919f327",
         tavoloId: tavolo.id,
         cameriereId: parseInt(cameriereId, 10),
         coperti: parseInt(coperti, 10),
@@ -182,8 +182,8 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       console.log("Salvataggio comanda (React):", comandaData);
       console.log("Fetching tavoli...");
 
-      const url = "http://localhost/VendoloApi/api/test/creaComandaTavolo";
-      //const url = "https://vendoloapi.dea40.it/api/test/creaComandaTavolo";
+      //const url = "http://localhost/VendoloApi/api/test/creaComandaTavolo";
+      const url = "https://vendoloapitest.dea40.it/api/test/creaComandaTavolo";
 
       const headers = {
         Accept: "application/json",
@@ -259,7 +259,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       }
 
       const payload = {
-        IdCompany: "591C7617-DF68-4C82-9EF0-7DEBF5C71DE4",
+        IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327",
         Idtavolo: tavolo.id,
       };
 
@@ -268,7 +268,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       console.log("Fetching tavoli...");
 
       //const url = "http://localhost/VendoloApi/api/test/sendToKitchen";
-      const url = "https://vendoloapi.dea40.it/api/test/sendToKitchen";
+      const url = "https://vendoloapitest.dea40.it/api/test/sendToKitchen";
 
       const headers = {
         Accept: "application/json",
@@ -325,7 +325,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
   const visualizzaComanda = async () => {
     try {
       // const url = `http://localhost/VendoloApi/api/test/getComandaPerTavolo?idTavolo=${tavolo.id}`;
-      const url = `https://vendoloapi.Dea40.it/api/test/getComandaPerTavolo?idTavolo=${tavolo.id}`;
+      const url = `https://vendoloapitest.Dea40.it/api/test/getComandaPerTavolo?idTavolo=${tavolo.id}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -366,7 +366,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       }
 
       const comandaData = {
-        companyId: "591C7617-DF68-4C82-9EF0-7DEBF5C71DE4",
+        companyId: "4b848a8a-0f89-446d-bbd8-37468919f327",
         tavoloId: tavolo.id,
         cameriereId: parseInt(cameriereId, 10),
         coperti: parseInt(coperti, 10),
@@ -375,7 +375,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
 
       const response = await fetch(
         // "http://localhost/VendoloApi/api/test/creaComandaTavolo",
-        "https://vendoloapi.dea40.it/api/test/creaComandaTavolo",
+        "https://vendoloapitest.dea40.it/api/test/creaComandaTavolo",
         {
           method: "POST",
           headers: {
@@ -491,12 +491,16 @@ function ComandaModal({ tavolo, onClose, onSave }) {
   };
 
   const printComandaConRawBT = () => {
-    if (!selectedPiatti.length) {
+    const piatti = showComandaVisualizzata
+      ? comandaVisualizzata?.Piatti
+      : selectedPiatti;
+
+    if (!piatti || piatti.length === 0) {
       alert("❗ Nessun piatto selezionato per stampare la comanda.");
       return;
     }
 
-    const piattiRiga = selectedPiatti
+    const piattiRiga = piatti
       .map((p) => `- ${p.quantita}x ${p.nome} (${p.turno || "T1"})`)
       .join("\n");
 
@@ -665,10 +669,50 @@ function ComandaModal({ tavolo, onClose, onSave }) {
                 </tbody>
               </table>
 
-              <div style={{ textAlign: "right", marginTop: "20px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  justifyContent: "center",
+                  marginTop: "20px",
+                }}
+              >
+                <button
+                  className="btn btn-primary"
+                  onClick={sendToKitchen}
+                  disabled={!comandaVisualizzata?.Piatti?.length}
+                  style={{
+                    flexBasis: "calc(50% - 10px)",
+                    height: "45px",
+                    minWidth: "140px",
+                  }}
+                >
+                  Invia in Cucina
+                </button>
+
+                <button
+                  className="btn btn-primary"
+                  onClick={printComandaConRawBT}
+                  disabled={!comandaVisualizzata?.Piatti?.length}
+                  style={{
+                    flexBasis: "calc(50% - 10px)",
+                    height: "45px",
+                    minWidth: "140px",
+                  }}
+                >
+                  Stampa Scontrino
+                </button>
+
                 <button
                   className="btn btn-secondary"
                   onClick={() => setShowComandaVisualizzata(false)}
+                  style={{
+                    flexBasis: "100%",
+                    height: "45px",
+                    marginTop: "5px",
+                    maxWidth: "300px",
+                  }}
                 >
                   Chiudi
                 </button>

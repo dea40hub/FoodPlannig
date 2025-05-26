@@ -16,7 +16,7 @@ async function fetchTavoliAPI() {
   console.log("Fetching tavoli...");
 
   //const url = "http://localhost/VendoloApi/api/test/getTavoliSala";
-  const url = "https://vendoloapi.dea40.it/api/test/getTavoliSala";
+  const url = "https://vendoloapitest.dea40.it/api/test/getTavoliSala";
 
   const headers = {
     Accept: "application/json",
@@ -33,7 +33,7 @@ async function fetchTavoliAPI() {
   const response = await fetch(url, {
     method: "POST",
     headers: headers,
-    body: JSON.stringify({ IdCompany: "591C7617-DF68-4C82-9EF0-7DEBF5C71DE4" }), // Payload
+    body: JSON.stringify({ IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327" }), // Payload
   });
 
   console.log("✅ Response ricevuta con status:", response.status);
@@ -72,7 +72,7 @@ async function fetchTavoliAPI() {
   // }));
 }
 
-function TavoliGrid({ onSelectTavolo }) {
+function TavoliGrid({ onSelectTavolo, selectedTable }) {
   const [tavoli, setTavoli] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,7 +128,8 @@ function TavoliGrid({ onSelectTavolo }) {
         <div
           key={tavolo.id}
           onClick={() => onSelectTavolo(tavolo)} // Passa l'intero oggetto tavolo
-          className={`tavolo-card ${getCardClass(tavolo.stato)}`}
+          className={`tavolo-card ${getCardClass(tavolo.stato)} ${selectedTable?.id === tavolo.id ? "selected" : ""}`}
+
         >
           <span className="tavolo-numero">{tavolo.numero}</span>
           <span className="tavolo-stato">({tavolo.stato})</span>
