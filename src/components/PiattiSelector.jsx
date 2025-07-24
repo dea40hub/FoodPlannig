@@ -123,6 +123,7 @@ function PiattiSelector({ onPiattiChange }) {
           nome: piatto.nome,
           quantita: 1,
           turno: "T1",
+          prezzo: piatto.Prezzo,
         }; // Default a 1 e T1
       } else {
         delete newState[piatto.id];

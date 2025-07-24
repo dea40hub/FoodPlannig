@@ -1,0 +1,235 @@
+/* Header.css - Stili per il componente Header della SalaPage */
+
+.sala-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-height: 80px;
+}
+
+/* Sezione sinistra - Info azienda */
+.header-left .company-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.header-left .company-name {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    margin-bottom: 4px;
+    color: white;
+    line-height: 1.2;
+}
+
+.header-left .system-info {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+/* Sezione centrale - Titolo pagina */
+.header-center .page-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Sezione destra - Info utente e logout */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-right .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.header-right .user-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-right .user-name {
+    font-weight: 600;
+    color: white;
+    font-size: 16px;
+}
+
+.header-right .user-role {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legacy-indicator {
+    color: #ffc107;
+    font-weight: bold;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.header-right .datetime-info {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.header-right .current-date {
+    font-weight: 500;
+}
+
+.header-right .current-time {
+    font-family: monospace;
+    font-weight: 600;
+}
+
+/* Stili per il pulsante di logout */
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    outline: none;
+    backdrop-filter: blur(10px);
+}
+
+.logout-button:hover {
+    background-color: rgba(220, 53, 69, 0.9);
+    border-color: #dc3545;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.logout-button:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+}
+
+.logout-button svg {
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.logout-button:hover svg {
+    transform: translateX(3px);
+}
+
+.logout-text {
+    font-family: inherit;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .sala-header {
+        padding: 1rem 1.5rem;
+        min-height: 70px;
+    }
+    
+    .header-left .company-name {
+        font-size: 20px;
+    }
+    
+    .header-center .page-title {
+        font-size: 24px;
+    }
+    
+    .header-right .user-name {
+        font-size: 15px;
+    }
+    
+    .logout-button {
+        padding: 8px 12px;
+        font-size: 12px;
+        gap: 6px;
+    }
+    
+    .logout-button svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sala-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+        min-height: auto;
+        text-align: center;
+    }
+    
+    .header-left .company-info {
+        align-items: center;
+    }
+    
+    .header-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .header-right .user-info {
+        align-items: center;
+    }
+    
+    .logout-button .logout-text {
+        display: none; /* Solo icona su mobile */
+    }
+    
+    .logout-button {
+        padding: 10px;
+        min-width: 44px; /* Accessibilità touch */
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-center .page-title {
+        font-size: 20px;
+    }
+    
+    .header-left .company-name {
+        font-size: 18px;
+    }
+    
+    .header-right .datetime-info {
+        font-size: 12px;
+        gap: 8px;
+    }
+}

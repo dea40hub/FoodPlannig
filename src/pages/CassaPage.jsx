@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import "./CassaPage.css"; // Creeremo questo file CSS
+import "./CassaPage.css";
 import TavoliGrid from "../components/TavoliGrid";
+import vendoloLogo from "../assets/logo-vendolo-200.png";
 
 function CassaPage() {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -8,9 +9,82 @@ function CassaPage() {
   const [products, setProducts] = useState([]);
   const [currentOrder, setCurrentOrder] = useState([]);
   const [orderTotal, setOrderTotal] = useState(0);
-  const [selectedTable, setSelectedTable] = useState(null); // Aggiungere logica per selezionare tavolo
+  const [selectedTable, setSelectedTable] = useState(null);
   const [showSala, setShowSala] = useState(false);
   const [showComandaModal, setShowComandaModal] = useState(false);
+  const [showAnagraficaModal, setShowAnagraficaModal] = useState(false);
+  const [showScontrinoModal, setShowScontrinoModal] = useState(false);
+  const [showFatturaModal, setShowFatturaModal] = useState(false);
+  const [userSession, setUserSession] = useState(null);
+  const [formData, setFormData] = useState({
+    tipoCliente: "Privato",
+    partitaIva: "",
+    cliente: true,
+    fornitore: false,
+    cognome: "",
+    nome: "",
+    indirizzo: "",
+    regione: "",
+    provincia: "",
+    citta: "",
+    cap: "",
+    telefono: "",
+    email: "",
+    codiceFiscale: "",
+    pec: "",
+    sdi: "",
+    iban: "",
+  });
+
+  // Recupera i dati dell'utente dalla sessione
+  useEffect(() => {
+    const session = sessionStorage.getItem("userSession");
+    if (session) {
+      setUserSession(JSON.parse(session));
+    }
+  }, []);
+
+  // Funzione per il logout
+  const handleLogout = () => {
+    // Conferma logout
+    if (window.confirm("Sei sicuro di voler uscire?")) {
+      // Pulisce tutti i dati della sessione
+      sessionStorage.removeItem("userSession");
+      sessionStorage.removeItem("currentCameriere");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("companyId");
+      sessionStorage.removeItem("companyName");
+      sessionStorage.removeItem("userId");
+      sessionStorage.removeItem("userEmail");
+      sessionStorage.removeItem("userRoles");
+
+      // Reindirizza alla pagina di login
+      window.location.href = "/login"; // Oppure navigate('/login') se usi React router
+    }
+  };
+
+  const handleFakePartitaIvaSearch = () => {
+    const fakeResponse = {
+      tipoCliente: "Azienda",
+      cognome: "",
+      nome: "MediaLab Srl",
+      indirizzo: "Via Roma 123",
+      regione: "Puglia",
+      provincia: "LE",
+      citta: "Lecce",
+      cap: "73100",
+      telefono: "0832123456",
+      email: "info@medialab.it",
+      codiceFiscale: "01234567890",
+      partitaIva: formData.partitaIva,
+      pec: "pec@medialab.it",
+      sdi: "ABC1234",
+      iban: "IT60X0542811101000000123456",
+    };
+
+    setFormData((prev) => ({ ...prev, ...fakeResponse }));
+  };
 
   const handleTavoloSelect = async (tavolo) => {
     console.log("Tavolo selezionato dalla cassa:", tavolo);
@@ -30,13 +104,12 @@ function CassaPage() {
 
       if (!json.Piatti || !json.Piatti.length) {
         alert("⚠️ Nessuna comanda presente per questo tavolo.");
-        setCurrentOrder([]); // svuota ordine se non c'è nulla
+        setCurrentOrder([]);
         return;
       }
 
-      // Trasforma la struttura in currentOrder
       const comanda = json.Piatti.map((p) => ({
-        id: p.id || p.IdArticolo, // adattalo al tuo JSON
+        id: p.id || p.IdArticolo,
         nome: p.nome || p.NomeArticolo,
         quantity: p.quantita || p.Quantita,
         price: p.prezzo || p.PrezzoUnitario || 0,
@@ -49,48 +122,12 @@ function CassaPage() {
     }
   };
 
-  // // Simula il caricamento ordinazioni
-  // useEffect(() => {
-  //   if (!localStorage.getItem("categorie")) {
-  //     localStorage.setItem(
-  //       "categorie",
-  //       JSON.stringify([
-  //         { id: 1, nome: "Pizza" },
-  //         { id: 2, nome: "Bevande" },
-  //       ])
-  //     );
-  //   }
-
-  //   if (!localStorage.getItem("piatti")) {
-  //     localStorage.setItem(
-  //       "piatti",
-  //       JSON.stringify([
-  //         { id: 101, nome: "Margherita", categoria_id: 1, prezzo: 6.5 },
-  //         { id: 102, nome: "Coca Cola", categoria_id: 2, prezzo: 2.0 },
-  //       ])
-  //     );
-  //   }
-  // }, []);
-
-  // Simula il caricamento di categorie e prodotti
-  // useEffect(() => {
-  //   // In un'applicazione reale, questi dati verrebbero caricati dal backend
-  //   const loadedCategories =
-  //     JSON.parse(localStorage.getItem("categorie")) || [];
-  //   const loadedProducts = JSON.parse(localStorage.getItem("piatti")) || [];
-  //   setCategories(loadedCategories);
-  //   setProducts(loadedProducts);
-  //   if (loadedCategories.length > 0) {
-  //     setSelectedCategory(loadedCategories[0].id);
-  //   }
-  // }, []);
-
   useEffect(() => {
     async function loadMenu() {
       try {
         const menu = await fetchCategorieEPiatti();
         setCategories(Object.keys(menu));
-        setProducts(menu); // 👈 Salvi tutto l’oggetto per poi filtrare
+        setProducts(menu);
         if (Object.keys(menu).length > 0) {
           setSelectedCategory(Object.keys(menu)[0]);
         }
@@ -101,29 +138,6 @@ function CassaPage() {
     loadMenu();
   }, []);
 
-  // useEffect(() => {
-  //   async function loadPiattiPerCategoria() {
-  //     if (!selectedCategory) return;
-  //     try {
-  //       const response = await fetch(
-  //         `https://vendoloapitest.dea40.it/api/test/getPiattiPerCategoria?idCategoria=${selectedCategory}`
-  //       );
-  //       const json = await response.json();
-  //       if (json.success && Array.isArray(json.data)) {
-  //         setProducts(json.data);
-  //       } else {
-  //         setProducts([]);
-  //       }
-  //     } catch (err) {
-  //       console.error("❌ Errore caricamento piatti:", err);
-  //       setProducts([]);
-  //     }
-  //   }
-
-  //   loadPiattiPerCategoria();
-  // }, [selectedCategory]);
-
-  // Calcola il totale dell'ordine ogni volta che cambia
   useEffect(() => {
     const total = currentOrder.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -152,8 +166,8 @@ function CassaPage() {
           ...prevOrder,
           {
             id,
-            nome: name, // 👈 importante per visualizzarlo
-            price, // 👈 importante per visualizzarlo
+            nome: name,
+            price,
             quantity: 1,
           },
         ];
@@ -172,49 +186,35 @@ function CassaPage() {
       const updatedOrder = prevOrder.map((item) => {
         if (item.id === productId) {
           const newQuantity = item.quantity + change;
-          return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 }; // Minimo 1
+          return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
         }
         return item;
       });
-      return updatedOrder.filter((item) => item.quantity > 0); // Rimuovi se quantità è 0
+      return updatedOrder.filter((item) => item.quantity > 0);
     });
   };
 
   async function fetchCategorieEPiatti() {
     console.log("Fetching categorie e piatti...");
 
-    //const url = "http://localhost/VendoloApi/api/test/getMenuCompletoPerFamiglia";
     const url =
       "https://vendoloapitest.dea40.it/api/test/getMenuCompletoPerFamiglia";
 
     const headers = {
       Accept: "application/json",
       "Content-Type": "application/json",
-      //Authorization: `Bearer ${userToken}`, // Usa un token
     };
-
-    console.log("🔹 Endpoint finale:", url);
-    console.log("🔹 Headers inviati:", headers);
-    console.log(
-      "🚀 Fetch sta per inviare la richiesta della lista dei tavoli della sala ..."
-    );
 
     const payload = {
       IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327",
       IdCategoria: "64198111-31AB-4772-8D30-08E26C502D9F",
     };
-    console.log("🔹 Payload inviato:", payload);
 
     const response = await fetch(url, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(payload),
     });
-
-    console.log("✅ Response ricevuta con status:", response.status);
-    console.log("✅ Response ricevuta con status text:", response.statusText);
-    console.log("✅ Response headers:", response.headers);
-    console.log("✅ Response body:", response.body);
 
     if (!response.ok) {
       throw new Error(
@@ -223,58 +223,122 @@ function CassaPage() {
     }
 
     const json = await response.json();
-    console.log("✅ JSON ricevuto:", json);
     const menuData = json.menu;
-    console.log("📦 Menu ricevuto:", menuData);
     return menuData;
   }
 
-  // Filtra i prodotti per la categoria selezionata
+  const handleInviaFattura = () => {
+    alert("Fattura inviata con successo!");
+  };
+
+  const handleStampaProforma = () => {
+    window.print();
+  };
+
   const filteredProducts =
     selectedCategory && products[selectedCategory]
       ? products[selectedCategory]
       : [];
 
+  // Prepara i dati utente per l'header
+  const headerUserData = userSession
+    ? {
+        nomeCompleto:
+          userSession.nomeCompleto ||
+          `${userSession.data?.user?.firstName || ""} ${
+            userSession.data?.user?.lastName || ""
+          }`.trim(),
+        companyName: userSession.data?.user?.companyName || "",
+        ruolo: userSession.ruoloSelezionato || "Operatore Cassa",
+        email: userSession.data?.user?.email || "",
+      }
+    : {
+        nomeCompleto: "Operatore",
+        companyName: "Azienda",
+        ruolo: "Operatore Cassa",
+        email: "",
+      };
+
   return (
     <div className="cassa-page">
       <header className="cassa-header">
-        {/* Intestazione simile all'immagine */}
-        <div className="header-left">VENDOLO.DEA40.IT</div>
+        {/* Intestazione aggiornata con dati reali */}
+        <div className="header-left">
+          <div className="company-info">
+            <strong>{headerUserData.companyName}</strong>
+            <small>VENDOLO.DEA40.IT</small>
+          </div>
+        </div>
         <div className="header-center">
-          {/* Pulsanti Tavoli / Asporto */}
           <button className="btn" onClick={() => setShowSala(!showSala)}>
             {showSala ? "Chiudi Sala" : "Tavoli & Sale"}
           </button>
           <button className="btn">Asporto & Consegne</button>
+          <button className="btn" onClick={() => setShowAnagraficaModal(true)}>
+            Anagrafica Clienti
+          </button>
         </div>
         <div className="header-right">
-          <span>Operatore: Cassa</span> {/* Da rendere dinamico */}
-          <span>
-            {new Date().toLocaleDateString("it-IT")}{" "}
-            {new Date().toLocaleTimeString("it-IT")}
-          </span>
+          <div className="user-info">
+            <div className="user-details">
+              <span className="user-name">{headerUserData.nomeCompleto}</span>
+              <span className="user-role">({headerUserData.ruolo})</span>
+            </div>
+            <div className="datetime-info">
+              <span className="current-date">
+                {new Date().toLocaleDateString("it-IT")}
+              </span>
+              <span className="current-time">
+                {new Date().toLocaleTimeString("it-IT", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
+          <button
+            className="logout-button"
+            onClick={handleLogout}
+            title="Esci dall'applicazione"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M16 17L21 12L16 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M21 12H9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="logout-text">Esci</span>
+          </button>
         </div>
       </header>
 
       <div className="cassa-body">
         <aside className="cassa-sidebar-left">
-          {/* Pulsanti Conto Disponibile */}
           <button className="btn btn-conto">Conto 1 Disponibile</button>
           <button className="btn btn-conto">Conto 2 Disponibile</button>
-          {/* Navigazione Categorie */}
-          {/* <nav className="category-nav">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                className={`category-button ${
-                  selectedCategory === category.id ? "active" : ""
-                }`}
-                onClick={() => handleCategoryClick(category.id)}
-              >
-                {category.nome}
-              </button>
-            ))}
-          </nav> */}
           <nav className="category-nav">
             {categories.map((categoria) => (
               <button
@@ -291,7 +355,6 @@ function CassaPage() {
         </aside>
 
         <main className="cassa-main">
-          {/* Tavoli visibili sempre */}
           <div className="tavoli-top-wrapper">
             <h2 className="section-title">Tavoli</h2>
             <TavoliGrid
@@ -300,10 +363,8 @@ function CassaPage() {
             />
           </div>
 
-          {/* Divider */}
           <hr className="section-divider" />
 
-          {/* Prodotti */}
           <div className="prodotti-wrapper">
             <h2 className="section-title">Prodotti</h2>
             {selectedTable ? (
@@ -342,7 +403,6 @@ function CassaPage() {
               <strong>{selectedTable.nome || selectedTable.numero}</strong>
             </div>
           )}
-          {/* Riepilogo Ordine */}
           <div className="order-summary">
             <div className="order-total-display">€ {orderTotal.toFixed(2)}</div>
             <div className="order-details">
@@ -350,7 +410,7 @@ function CassaPage() {
                 Pezzi:{" "}
                 {currentOrder.reduce((sum, item) => sum + item.quantity, 0)}
               </span>
-              <span>Operatore: Cassa</span>
+              <span>Operatore: {headerUserData.nomeCompleto}</span>
             </div>
             <ul className="order-items-list">
               {currentOrder.map((item) => (
@@ -376,7 +436,6 @@ function CassaPage() {
               ))}
             </ul>
 
-            {/* 🔹 Inserisci QUI il nuovo pulsante */}
             <button
               className="action-button"
               onClick={() => setShowComandaModal(true)}
@@ -384,10 +443,8 @@ function CassaPage() {
               Dettaglio Comanda
             </button>
           </div>
-          {/* Tastierino Numerico e Pulsanti Azione */}
           <div className="keypad-actions">
             <div className="keypad">
-              {/* Pulsanti 7-8-9, 4-5-6, 1-2-3, 0, . */}
               {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0, "."].map((key) => (
                 <button key={key} className="keypad-button">
                   {key}
@@ -397,25 +454,410 @@ function CassaPage() {
               <button className="keypad-button">BACK</button>
             </div>
             <div className="action-buttons">
-              {/* Pulsanti Azione (Sconto, Chiudi, ecc.) */}
               <button className="action-button">Sconto</button>
               <button className="action-button">Chiudi Tavolo</button>
-              <button className="action-button">Stampa Preconto</button>
-              <button className="action-button">Scontrino</button>
-              {/* ... altri pulsanti */}
+              <button
+                className="action-button"
+                onClick={() => setShowFatturaModal(true)}
+              >
+                Fattura
+              </button>
+              <button
+                className="action-button"
+                onClick={() => setShowScontrinoModal(true)}
+              >
+                Scontrino
+              </button>
             </div>
           </div>
         </aside>
       </div>
 
       <footer className="cassa-footer">
-        {/* Pulsanti Funzione F1-F12 */}
         <button className="footer-button">Cassetto F2</button>
         <button className="footer-button">Operaz. Cassa F5</button>
         <button className="footer-button">Azzera Conto F6</button>
         <button className="footer-button">Annulla Art. F7</button>
-        {/* ... altri pulsanti */}
       </footer>
+
+      {/* MODALI - Rimangono identici al tuo codice originale */}
+      {showFatturaModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowFatturaModal(false)}
+        >
+          <div
+            className="modal-content-fattura"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="fattura-container fattura-stampa-area">
+              <div className="fattura-intestazioni">
+                <div className="intestazione-azienda">
+                  <h2>{headerUserData.companyName}</h2>
+                  <p>P.IVA 01234567890</p>
+                  <p>Via Roma 123 – 73100 Lecce (LE)</p>
+                </div>
+                <div className="intestazione-cliente">
+                  <p>
+                    <strong>Cliente Demo</strong>
+                  </p>
+                  <p>P.IVA 00000000000</p>
+                  <p>Via Cliente, 1 - Città</p>
+                </div>
+              </div>
+
+              <h4 style={{ marginTop: 30 }}>Fattura proforma</h4>
+              <p>
+                Num. provv. 1/{new Date().getFullYear()} del{" "}
+                {new Date().toLocaleDateString()}
+              </p>
+
+              <table className="fattura-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Dettaglio</th>
+                    <th>Q.tà</th>
+                    <th>Prezzo unitario</th>
+                    <th>Importo</th>
+                    <th>IVA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentOrder.map((item, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{item.nome}</td>
+                      <td>{item.quantity}</td>
+                      <td>€ {item.price.toFixed(2)}</td>
+                      <td>€ {(item.price * item.quantity).toFixed(2)}</td>
+                      <td>22%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="fattura-totali">
+                <p>Imponibile: € {orderTotal.toFixed(2)}</p>
+                <p>IVA 22%: € {(orderTotal * 0.22).toFixed(2)}</p>
+                <p>
+                  <strong>Totale: € {(orderTotal * 1.22).toFixed(2)}</strong>
+                </p>
+              </div>
+
+              <div className="fattura-pagamento">
+                <h4>Modalità pagamento</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Metodo</th>
+                      <th>IBAN</th>
+                      <th>Scadenza</th>
+                      <th>Importo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Bonifico</td>
+                      <td>IT00X0000000000000000000000</td>
+                      <td>30/06/{new Date().getFullYear()}</td>
+                      <td>€ {(orderTotal * 1.22).toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="fattura-actions no-print">
+              <button
+                className="fattura-button"
+                onClick={() => setShowFatturaModal(false)}
+              >
+                Chiudi Anteprima
+              </button>
+              <button
+                className="fattura-button green"
+                onClick={handleInviaFattura}
+              >
+                Invia Fattura
+              </button>
+              <button
+                className="fattura-button purple"
+                onClick={handleStampaProforma}
+              >
+                Stampa Proforma
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showScontrinoModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowScontrinoModal(false)}
+        >
+          <div
+            className="modal-content-scontrino"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="scontrino-container">
+              <div className="scontrino-logo">
+                <img src={vendoloLogo} alt="Logo" style={{ width: 80 }} />
+              </div>
+
+              <h3 className="scontrino-title">{headerUserData.companyName}</h3>
+              <p>Via Roma 123 – 73100 Lecce</p>
+              <p>P.IVA 01234567890</p>
+              <p>Tel. 0832 123456</p>
+
+              <h4 style={{ marginTop: 20 }}>DOCUMENTO COMMERCIALE</h4>
+
+              <table className="scontrino-table">
+                <thead>
+                  <tr>
+                    <th>Q.tà</th>
+                    <th>Descrizione</th>
+                    <th>Prezzo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentOrder.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.quantity}</td>
+                      <td>{item.nome}</td>
+                      <td>€ {item.price.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="scontrino-totale">
+                <strong>TOTALE: € {orderTotal.toFixed(2)}</strong>
+              </div>
+
+              <div className="scontrino-footer">
+                <p>Trans. n. 1</p>
+                <p>TS DCW2025/9345-9669</p>
+                <p>{new Date().toLocaleString("it-IT")}</p>
+                <p>DOCUMENTO N. 1/{new Date().toISOString().slice(0, 10)}</p>
+              </div>
+
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowScontrinoModal(false)}
+                style={{ marginTop: 20 }}
+              >
+                Chiudi Anteprima
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowScontrinoModal(false)}
+                style={{ marginTop: 20 }}
+              >
+                Emetti Scontrino
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAnagraficaModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowAnagraficaModal(false)}
+        >
+          <div
+            className="modal-content modal-anagrafica"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Anagrafica Cliente / Fornitore</h3>
+
+            <form className="anagrafica-form">
+              <label>
+                Tipo Cliente:
+                <select
+                  value={formData.tipoCliente}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tipoCliente: e.target.value })
+                  }
+                >
+                  <option value="Privato">Privato</option>
+                  <option value="Azienda">Azienda</option>
+                </select>
+              </label>
+
+              <label>
+                Partita IVA:
+                <input
+                  type="text"
+                  placeholder="IT01234567890"
+                  value={formData.partitaIva}
+                  onChange={(e) =>
+                    setFormData({ ...formData, partitaIva: e.target.value })
+                  }
+                />
+              </label>
+
+              <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleFakePartitaIvaSearch}
+                >
+                  CERCA
+                </button>
+              </div>
+
+              <label>
+                Cliente:
+                <input
+                  type="checkbox"
+                  checked={formData.cliente}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cliente: e.target.checked })
+                  }
+                />
+              </label>
+
+              <label>
+                Fornitore:
+                <input
+                  type="checkbox"
+                  checked={formData.fornitore}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fornitore: e.target.checked })
+                  }
+                />
+              </label>
+              <div></div>
+
+              <input
+                type="text"
+                placeholder="Cognome"
+                value={formData.cognome}
+                onChange={(e) =>
+                  setFormData({ ...formData, cognome: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Nome"
+                value={formData.nome}
+                onChange={(e) =>
+                  setFormData({ ...formData, nome: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Indirizzo"
+                value={formData.indirizzo}
+                onChange={(e) =>
+                  setFormData({ ...formData, indirizzo: e.target.value })
+                }
+              />
+
+              <input
+                type="text"
+                placeholder="Regione"
+                value={formData.regione}
+                onChange={(e) =>
+                  setFormData({ ...formData, regione: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Provincia"
+                value={formData.provincia}
+                onChange={(e) =>
+                  setFormData({ ...formData, provincia: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Città"
+                value={formData.citta}
+                onChange={(e) =>
+                  setFormData({ ...formData, citta: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="CAP"
+                value={formData.cap}
+                onChange={(e) =>
+                  setFormData({ ...formData, cap: e.target.value })
+                }
+              />
+
+              <input
+                type="text"
+                placeholder="Telefono"
+                value={formData.telefono}
+                onChange={(e) =>
+                  setFormData({ ...formData, telefono: e.target.value })
+                }
+              />
+              <input
+                type="email"
+                placeholder="E-mail"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Codice Fiscale"
+                value={formData.codiceFiscale}
+                onChange={(e) =>
+                  setFormData({ ...formData, codiceFiscale: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="PEC"
+                value={formData.pec}
+                onChange={(e) =>
+                  setFormData({ ...formData, pec: e.target.value })
+                }
+              />
+
+              <input
+                type="text"
+                placeholder="Codice SDI"
+                value={formData.sdi}
+                onChange={(e) =>
+                  setFormData({ ...formData, sdi: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="IBAN"
+                value={formData.iban}
+                onChange={(e) =>
+                  setFormData({ ...formData, iban: e.target.value })
+                }
+              />
+              <div></div>
+
+              <div className="form-actions">
+                <button className="btn-primary" type="submit">
+                  SALVA
+                </button>
+              </div>
+            </form>
+
+            <button
+              onClick={() => setShowAnagraficaModal(false)}
+              style={{ marginTop: 20 }}
+            >
+              Chiudi
+            </button>
+          </div>
+        </div>
+      )}
+
       {showComandaModal && (
         <div
           className="modal-overlay"
@@ -425,10 +867,7 @@ function CassaPage() {
             if (e.key === "Escape") setShowComandaModal(false);
           }}
         >
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()} // 👈 blocca chiusura se clic dentro
-          >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Dettaglio Comanda Tavolo {selectedTable?.numero}</h3>
             <table className="modal-table">
               <thead>
@@ -468,7 +907,7 @@ function CassaPage() {
                   <td colSpan="3" style={{ textAlign: "right" }}>
                     Sconto:
                   </td>
-                  <td>€ 0.00</td> {/* Puoi renderlo dinamico se vuoi */}
+                  <td>€ 0.00</td>
                 </tr>
                 <tr>
                   <td

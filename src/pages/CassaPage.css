@@ -8,7 +8,7 @@
     color: #333;
 }
 
-/* Header */
+/* Header aggiornato con dati utente e azienda */
 .cassa-header {
     display: flex;
     justify-content: space-between;
@@ -17,10 +17,31 @@
     background-color: #343a40; /* Dark background */
     color: white;
     flex-shrink: 0;
+    min-height: 60px;
 }
 
 .header-left {
     font-weight: bold;
+}
+
+.header-left .company-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.header-left .company-info strong {
+    font-size: 16px;
+    color: white;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.header-left .company-info small {
+    font-size: 11px;
+    color: #adb5bd;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .header-center {
@@ -32,15 +53,170 @@
     background-color: #dc3545; /* Red buttons */
     color: white;
     border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.header-center .btn:hover {
+    background-color: #c82333;
 }
 
 .header-right {
     font-size: 0.8rem;
     text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.header-right span {
-    display: block;
+.header-right .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.header-right .user-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-right .user-name {
+    font-weight: bold;
+    color: white;
+    font-size: 14px;
+}
+
+.header-right .user-role {
+    color: #adb5bd;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.header-right .datetime-info {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: #adb5bd;
+}
+
+.header-right .current-date {
+    font-weight: 500;
+}
+
+.header-right .current-time {
+    font-family: monospace;
+}
+
+/* Stili per il pulsante di logout */
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    border-radius: 6px;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    outline: none;
+}
+
+.logout-button:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.logout-button:focus {
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.4);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(220, 53, 69, 0.3);
+}
+
+.logout-button svg {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.logout-button:hover svg {
+    transform: translateX(2px);
+}
+
+.logout-text {
+    font-family: inherit;
+}
+
+/* Responsive aggiuntivo per tablet */
+@media (max-width: 1200px) {
+    .header-left .company-info strong {
+        font-size: 14px;
+    }
+    
+    .header-right .user-name {
+        font-size: 13px;
+    }
+    
+    .header-right .datetime-info {
+        font-size: 11px;
+    }
+    
+    .logout-button {
+        padding: 6px 10px;
+        font-size: 11px;
+        gap: 4px;
+    }
+    
+    .logout-button svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cassa-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px;
+        min-height: auto;
+    }
+    
+    .header-center {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .header-right {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .header-right .user-info {
+        align-items: center;
+    }
+    
+    .logout-button {
+        margin-top: 8px;
+    }
+    
+    .logout-text {
+        display: none; /* Nascondi il testo su mobile, mostra solo l'icona */
+    }
 }
 
 /* Body */
@@ -450,17 +626,7 @@
     justify-content: center;
     z-index: 999;
   }
-  
-  .modal-content {
-    background: white;
-    padding: 20px;
-    width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  
+ 
   .modal-table {
     width: 100%;
     border-collapse: collapse;
@@ -495,12 +661,11 @@
     align-items: center;
     z-index: 999;
   }
-  
-  .modal-content {
+   .modal-content {
     background: white;
     padding: 30px;
     border-radius: 8px;
-    min-width: 600px;
+    min-width: 1200px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -525,6 +690,330 @@
   
   .modal-table tfoot td {
     background-color: #f9f9f9;
+  }
+  /* Modal anagrafica clienti */
+
+ 
+  
+  .anagrafica-form {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    font-size: 14px;
+    margin-top: 20px;
+  }
+  
+  .anagrafica-form input,
+  .anagrafica-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  .anagrafica-form label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  
+  .anagrafica-form .form-actions {
+    grid-column: span 3;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+  }
+  
+  .btn-secondary {
+    background-color: #e0e0e0;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+  }
+  .modal-anagrafica {
+    max-width: 1400px;
+    width: 98%;
+  }
+
+  /* Scontrino  */
+  .modal-scontrino {
+    width: 320px; /* stretto come uno scontrino */
+    max-height: 90vh;
+    background-color: #fff;
+    padding: 20px;
+    font-family: monospace;
+    border-radius: 8px;
+    overflow-y: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+  }
+  
+  .scontrino-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .scontrino-logo img {
+    width: 60px;
+    margin-bottom: 10px;
+  }
+  
+  .scontrino-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .scontrino-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .scontrino-table th,
+  .scontrino-table td {
+    padding: 4px;
+    text-align: left;
+    border-bottom: 1px dotted #aaa;
+  }
+  
+  .scontrino-table th:nth-child(1),
+  .scontrino-table td:nth-child(1) {
+    width: 15%;
+    text-align: center;
+  }
+  
+  .scontrino-table th:nth-child(3),
+  .scontrino-table td:nth-child(3) {
+    width: 30%;
+    text-align: right;
+  }
+  
+  .scontrino-totale {
+    width: 100%;
+    text-align: right;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
+  .scontrino-footer {
+    margin-top: 20px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  
+  .btn-primary {
+    margin-top: 15px;
+    background-color: #4e51fa;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .modal-content-scontrino {
+    width: 320px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-height: 90vh;
+    overflow-y: auto;
+    font-family: monospace;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Fatture */
+
+  .modal-content-fattura {
+    width: 794px; /* A4 width */
+    height: 1123px; /* A4 height */
+    max-width: 90vw;
+    max-height: 95vh;
+    background: white;
+    padding: 40px;
+    border-radius: 6px;
+    overflow-y: auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  
+  .fattura-container h2,
+  .fattura-container h3,
+  .fattura-container h4 {
+    margin: 0;
+  }
+  
+  .fattura-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  
+  .fattura-table th,
+  .fattura-table td {
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  
+  .fattura-totali {
+    margin-top: 15px;
+    font-size: 15px;
+    text-align: right;
+  }
+  
+  .fattura-pagamento table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .fattura-pagamento th,
+  .fattura-pagamento td {
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  .fattura-intestazioni {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .intestazione-azienda {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  .intestazione-cliente {
+    flex: 1;
+    text-align: right;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 40px; /* Sposta in basso */
+  }
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  
+    .modal-overlay {
+      background: none !important;
+      position: static !important;
+      height: auto !important;
+      width: 100% !important;
+      box-shadow: none !important;
+    }
+  
+    .modal-content-fattura {
+      box-shadow: none !important;
+      width: 100% !important;
+      height: auto !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  }
+
+  .fattura-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 30px;
+  }
+  .fattura-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 40px;
+  }
+  
+  .fattura-button {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    min-width: 140px;
+    background-color: #e0e0e0;
+    color: #333;
+    transition: all 0.2s ease;
+  }
+  
+  .fattura-button:hover {
+    background-color: #d5d5d5;
+  }
+  
+  /* Colori varianti */
+  .fattura-button.green {
+    background-color: #28a745;
+    color: white;
+  }
+  .fattura-button.green:hover {
+    background-color: #218838;
+  }
+  
+  .fattura-button.purple {
+    background-color: #5b2ff6;
+    color: white;
+  }
+  .fattura-button.purple:hover {
+    background-color: #4522c5;
+  }
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+  
+    .fattura-stampa-area,
+    .fattura-stampa-area * {
+      visibility: visible;
+    }
+  
+    .fattura-stampa-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      background: white;
+      z-index: 9999;
+      padding: 0;
+      margin: 0;
+    }
+  
+    .no-print {
+      display: none !important;
+    }
+  
+    @page {
+      size: A4 portrait;
+      margin: 20mm;
+    }
   }
   
 

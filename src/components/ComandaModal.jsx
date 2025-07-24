@@ -9,6 +9,8 @@ function ComandaModal({ tavolo, onClose, onSave }) {
   const [comandaEsistente, setComandaEsistente] = useState(null);
   const [comandaVisualizzata, setComandaVisualizzata] = useState(null);
   const [showComandaVisualizzata, setShowComandaVisualizzata] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteComanda, setNoteComanda] = useState("");
 
   //Placeholder: Simula caricamento comanda esistente
   useEffect(() => {
@@ -115,6 +117,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
         cameriereId: parseInt(cameriereId, 10),
         coperti: parseInt(coperti, 10),
         piatti: selectedPiatti, // Array di { piattoId, nome, quantita, turno }
+        note: noteComanda, // Aggiungi le note della comanda
       };
 
       // Placeholder: Simula chiamata API per salvare/aggiornare la comanda
@@ -182,7 +185,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       console.log("Salvataggio comanda (React):", comandaData);
       console.log("Fetching tavoli...");
 
-      //const url = "http://localhost/VendoloApi/api/test/creaComandaTavolo";
+      //const url = "http://localhost/VendoloApiTest/api/test/creaComandaTavolo";
       const url = "https://vendoloapitest.dea40.it/api/test/creaComandaTavolo";
 
       const headers = {
@@ -490,6 +493,42 @@ function ComandaModal({ tavolo, onClose, onSave }) {
     window.location.href = `rawbt:print?data=text/html,${encodedData}`;
   };
 
+  // const printComandaConRawBT = () => {
+  //   const piatti = showComandaVisualizzata
+  //     ? comandaVisualizzata?.Piatti
+  //     : selectedPiatti;
+
+  //   if (!piatti || piatti.length === 0) {
+  //     alert("❗ Nessun piatto selezionato per stampare la comanda.");
+  //     return;
+  //   }
+
+  //   const piattiRiga = piatti
+  //     .map((p) => `- ${p.quantita}x ${p.nome} (${p.turno || "T1"})`)
+  //     .join("\n");
+
+  //   const contenutoTesto = `
+
+  //   VENDOLO - GESTIONE SALA
+  //    -- nome ristorante --
+  // ------------------------------
+
+  // 🍽️ COMANDA CUCINA
+
+  // Tavolo    : ${tavolo.numero}
+  // Coperti   : ${coperti}
+  // Cameriere : Maurilio Maruccio
+  // ------------------------------
+  // ${piattiRiga}
+  // ------------------------------
+  // Ora: ${new Date().toLocaleTimeString()}
+
+  // `;
+
+  //   const encodedText = encodeURIComponent(contenutoTesto);
+  //   window.location.href = `rawbt:print?data=text/plain,${encodedText}`;
+  // };
+
   const printComandaConRawBT = () => {
     const piatti = showComandaVisualizzata
       ? comandaVisualizzata?.Piatti
@@ -505,11 +544,11 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       .join("\n");
 
     const contenutoTesto = `
-
-    VENDOLO - GESTIONE SALA
-     -- nome ristorante --
+  
+  VENDOLO - GESTIONE SALA
+   -- nome ristorante --
   ------------------------------
-
+  
   🍽️ COMANDA CUCINA
   
   Tavolo    : ${tavolo.numero}
@@ -519,7 +558,14 @@ function ComandaModal({ tavolo, onClose, onSave }) {
   ${piattiRiga}
   ------------------------------
   Ora: ${new Date().toLocaleTimeString()}
-
+  ${
+    noteComanda?.trim()
+      ? `------------------------------
+  📝 NOTE COMANDA:
+  ${noteComanda.trim()}`
+      : ""
+  }
+  
   `;
 
     const encodedText = encodeURIComponent(contenutoTesto);
@@ -668,6 +714,23 @@ function ComandaModal({ tavolo, onClose, onSave }) {
                   ))}
                 </tbody>
               </table>
+              {/* Mostra le note se presenti */}
+              {noteComanda?.trim() && (
+                <div
+                  style={{
+                    marginTop: "16px",
+                    padding: "12px",
+                    backgroundColor: "#f9f9f9",
+                    borderRadius: "8px",
+                    border: "1px solid #ddd",
+                  }}
+                >
+                  <h5 style={{ marginBottom: "6px" }}>📝 Note Comanda</h5>
+                  <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
+                    {noteComanda.trim()}
+                  </p>
+                </div>
+              )}
 
               <div
                 style={{
@@ -758,15 +821,25 @@ function ComandaModal({ tavolo, onClose, onSave }) {
                   display: "flex",
                   flexWrap: "wrap",
                   gap: "12px",
-                  justifyContent: "space-between",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isSaving}
-                  className="btn btn-secondary"
-                  style={{ flexBasis: "calc(50% - 6px)", height: "45px" }}
+                  className="btn btn-primary"
+                  style={{
+                    flexBasis: "calc(50% - 6px)",
+                    height: "45px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    lineHeight: "normal", // <-- chiave per disattivare disallineamenti
+                    padding: "0 12px", // padding coerente
+                    fontSize: "16px", // stesso font-size degli altri
+                  }}
                 >
                   Annulla
                 </button>
@@ -813,16 +886,83 @@ function ComandaModal({ tavolo, onClose, onSave }) {
                 {/* placeholder extra */}
                 <button
                   type="button"
-                  disabled={isSaving}
+                  onClick={() => setShowNoteModal(true)}
                   className="btn btn-primary"
                   style={{ flexBasis: "calc(50% - 6px)", height: "45px" }}
                 >
-                  ---
+                  Note Comanda
                 </button>
               </div>
             </>
           )}
         </form>
+        {showNoteModal && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowNoteModal(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 99999,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "#fff",
+                padding: "24px",
+                borderRadius: "12px",
+                width: "90%",
+                maxWidth: "500px",
+                boxShadow: "0 6px 20px rgba(0,0,0,0.3)",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Note per la Comanda</h3>
+              <textarea
+                value={noteComanda}
+                onChange={(e) => setNoteComanda(e.target.value)}
+                rows={6}
+                placeholder="Inserisci note per la cucina o il servizio..."
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  fontSize: "14px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  resize: "none",
+                }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "20px",
+                }}
+              >
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowNoteModal(false)}
+                >
+                  Annulla
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowNoteModal(false)}
+                >
+                  Salva
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

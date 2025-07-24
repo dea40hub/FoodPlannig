@@ -5,24 +5,46 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import LoginForm from "./components/LoginForm";
+import LoginPage from "./pages/login"; // Importa la nuova pagina di login
 import SalaPage from "./pages/SalaPage";
 import CucinaPage from "./pages/CucinaPage";
-import CassaPage from "./pages/CassaPage"; // Importa la nuova pagina Cassa
+import CassaPage from "./pages/CassaPage";
 import "./App.css";
 
+// Costanti per i ruoli
+const ROLES = {
+  CAMERIERE: "cameriere",
+  CASSA: "cassa"
+};
+
 function App() {
-  // Funzione per verificare se l'utente è loggato (esempio)
+  // Funzione per verificare se l'utente è loggato
   const isAuthenticated = () => {
-    return sessionStorage.getItem("currentCameriere") !== null;
+    try {
+      return sessionStorage.getItem("currentCameriere") !== null;
+    } catch (error) {
+      console.error("Errore nel controllo dell'autenticazione:", error);
+      return false;
+    }
   };
 
-  // Funzione per verificare il ruolo dell'utente (esempio)
+  // Funzione per verificare il ruolo dell'utente
   const getUserRole = () => {
-    const user = JSON.parse(sessionStorage.getItem("currentCameriere"));
-    // Assumiamo che l'utente 'cassa' abbia un ID specifico o un campo 'ruolo'
-    // Qui usiamo un nome specifico per semplicità
-    return user && user.nome.toLowerCase() === "cassa" ? "cassa" : "cameriere";
+    try {
+      const user = JSON.parse(sessionStorage.getItem("currentCameriere"));
+      if (!user) return null;
+      
+      // Controlla sia il campo 'ruolo' che il nome per compatibilità
+      if (user.ruolo) {
+        return user.ruolo;
+      }
+      
+      // Fallback per il controllo legacy basato sul nome
+      return user.nome && user.nome.toLowerCase() === "cassa" ? ROLES.CASSA : ROLES.CAMERIERE;
+    } catch (error) {
+      console.error("Errore nel parsing dell'utente:", error);
+      return null;
+    }
   };
 
   // Componente protetto per le route
@@ -30,12 +52,16 @@ function App() {
     if (!isAuthenticated()) {
       return <Navigate to="/login" replace />;
     }
-    if (requiredRole && getUserRole() !== requiredRole) {
-      // Se il ruolo è richiesto ma non corrisponde, reindirizza
-      // Potresti reindirizzare a una pagina di accesso negato o alla pagina di default del ruolo
-      // Per ora, reindirizziamo al login
-      return <Navigate to="/login" replace />;
+    
+    if (requiredRole) {
+      const userRole = getUserRole();
+      if (!userRole || userRole !== requiredRole) {
+        // Reindirizza alla pagina di login se il ruolo non corrisponde
+        sessionStorage.clear(); // Pulisce la sessione per sicurezza
+        return <Navigate to="/login" replace />;
+      }
     }
+    
     return children;
   };
 
@@ -43,10 +69,14 @@ function App() {
   const RedirectIfLoggedIn = ({ children }) => {
     if (isAuthenticated()) {
       const role = getUserRole();
-      if (role === "cassa") {
+      if (role === ROLES.CASSA) {
         return <Navigate to="/cassa" replace />;
       }
-      return <Navigate to="/sala" replace />;
+      if (role === ROLES.CAMERIERE) {
+        return <Navigate to="/sala" replace />;
+      }
+      // Se il ruolo non è riconosciuto, pulisce la sessione
+      sessionStorage.clear();
     }
     return children;
   };
@@ -54,41 +84,62 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Route di login */}
         <Route
           path="/login"
           element={
             <RedirectIfLoggedIn>
-              <LoginForm />
+              <LoginPage />
             </RedirectIfLoggedIn>
           }
         />
+        
+        {/* Route per camerieri */}
         <Route
           path="/sala"
           element={
-            <ProtectedRoute requiredRole="cameriere">
+            <ProtectedRoute requiredRole={ROLES.CAMERIERE}>
               <SalaPage />
             </ProtectedRoute>
           }
         />
+        
         <Route
           path="/cucina"
           element={
-            // Assumiamo che anche la cucina sia accessibile ai camerieri
-            // o potresti creare un ruolo 'cuoco'
-            <ProtectedRoute requiredRole="cameriere">
+            <ProtectedRoute requiredRole={ROLES.CAMERIERE}>
               <CucinaPage />
             </ProtectedRoute>
           }
         />
+        
+        {/* Route per operatori di cassa */}
         <Route
           path="/cassa"
           element={
-            <ProtectedRoute requiredRole="cassa">
+            <ProtectedRoute requiredRole={ROLES.CASSA}>
               <CassaPage />
             </ProtectedRoute>
           }
         />
-        {/* Reindirizza alla pagina di login se nessuna route corrisponde o se l'utente non è loggato */}
+        
+        {/* Route di default e 404 */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated() ? (
+              getUserRole() === ROLES.CASSA ? (
+                <Navigate to="/cassa" replace />
+              ) : (
+                <Navigate to="/sala" replace />
+              )
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        
+        {/* Fallback per route non esistenti */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
