@@ -1015,5 +1015,193 @@
       margin: 20mm;
     }
   }
+
+  @keyframes spin {
+  0% { 
+    transform: rotate(0deg); 
+  }
+  100% { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* Stili aggiuntivi per migliorare l'UX del bottone scontrino */
+.btn-primary:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.btn-primary:disabled:hover {
+  background-color: #6c757d !important;
+  transform: none !important;
+}
+
+/* Box tipo pagamento nella sidebar destra (sotto la tastiera) */
+.tipo-pagamento-box {
+  background-color: #ffffff;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0 16px 0; /* Margini ottimizzati per la posizione sotto la tastiera */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tipo-pagamento-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 8px;
+}
+
+.tipo-pagamento-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tipo-pagamento-option {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tipo-pagamento-option:hover {
+  border-color: #007bff;
+  background-color: #e3f2fd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.15);
+}
+
+.tipo-pagamento-option input[type="radio"] {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  accent-color: #007bff;
+  cursor: pointer;
+}
+
+.tipo-pagamento-option:has(input:checked) {
+  border-color: #007bff;
+  background-color: #007bff;
+  color: white;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.tipo-pagamento-option:has(input:checked) .tipo-pagamento-icon {
+  filter: brightness(1.2);
+}
+
+.tipo-pagamento-icon {
+  margin-right: 6px;
+  font-size: 16px;
+  transition: filter 0.2s ease;
+}
+
+.tipo-pagamento-label {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Effetti per focus e accessibilità */
+.tipo-pagamento-option input[type="radio"]:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.tipo-pagamento-option:active {
+  transform: scale(0.98);
+}
+
+/* Indicatore visivo quando è selezionato */
+.tipo-pagamento-option:has(input:checked)::after {
+  content: "✓";
+  margin-left: auto;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Responsive per schermi più piccoli */
+@media (max-width: 1200px) {
+  .tipo-pagamento-box {
+    padding: 10px;
+    margin: 10px 0 14px 0;
+  }
   
+  .tipo-pagamento-title {
+    font-size: 13px;
+  }
+  
+  .tipo-pagamento-option {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .tipo-pagamento-icon {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tipo-pagamento-options {
+    flex-direction: row;
+    gap: 8px;
+  }
+  
+  .tipo-pagamento-option {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 6px;
+  }
+  
+  .tipo-pagamento-label {
+    display: none; /* Nasconde il testo su mobile, mostra solo icone */
+  }
+  
+  .tipo-pagamento-icon {
+    margin-right: 0;
+    font-size: 18px;
+  }
+}
+
+/* Animazione sottile quando si cambia selezione */
+@keyframes pagamento-select {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.tipo-pagamento-option:has(input:checked) {
+  animation: pagamento-select 0.3s ease;
+}
+
+/* Stile per quando è disabilitato (se necessario) */
+.tipo-pagamento-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.tipo-pagamento-option.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #e9ecef;
+}
 

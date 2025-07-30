@@ -36,6 +36,9 @@ function CassaPage() {
     iban: "",
   });
 
+  const [isEmettendoScontrino, setIsEmettendoScontrino] = useState(false);
+  const [tipoPagamento, setTipoPagamento] = useState("contanti");
+
   // Recupera i dati dell'utente dalla sessione
   useEffect(() => {
     const session = sessionStorage.getItem("userSession");
@@ -84,6 +87,137 @@ function CassaPage() {
     };
 
     setFormData((prev) => ({ ...prev, ...fakeResponse }));
+  };
+
+  const handleEmettiScontrino = async () => {
+    setIsEmettendoScontrino(true);
+
+    try {
+      const authToken = sessionStorage.getItem("authToken");
+      if (!authToken) {
+        alert(
+          "Token di autenticazione non trovato. Effettua nuovamente il login."
+        );
+        return;
+      }
+
+      if (currentOrder.length === 0) {
+        alert("Nessun articolo da emettere nello scontrino.");
+        return;
+      }
+
+      // Calcola i pagamenti in base alla selezione
+      const pagamentoContante = tipoPagamento === "contanti" ? orderTotal : 0;
+      const pagamentoElettronico =
+        tipoPagamento === "elettronico" ? orderTotal : 0;
+
+      const payload = {
+        tokenAPI:
+          "TJd7UH0aVPsDEUEMP8MC8VH7udfSiQgAXaXRkaqdioOOam7aGh9hmER7gxRJ859s",
+        idSede: "FFBF96AE-ED56-47B1-BBDA-70DC24C74321",
+        scontrino: {
+          dettaglio: currentOrder.map((item) => ({
+            codiceIva: "22",
+            descrizione: item.nome,
+            prezzo: item.price,
+            quantita: item.quantity,
+            codiceArticolo: "",
+            valoresconto: 0,
+            omaggio: false,
+          })),
+          oid: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
+          numero: 0,
+          etichetta: selectedTable
+            ? `Tavolo ${selectedTable.nome || selectedTable.numero}`
+            : "",
+          codiceFiscale: "",
+          pagamentoContante: pagamentoContante,
+          pagamentoElettronico: pagamentoElettronico,
+          pagamentoTicket: 0,
+          numeroTicket: 0,
+          scontoAbbuono: 0,
+          nonRiscossoPrestazioni: 0,
+          nonRiscossoCredito: 0,
+          codiceLotteria: "",
+        },
+      };
+
+      console.log("📤 Invio scontrino:", payload);
+
+      const response = await fetch(
+        "https://apiwhrtest.dea40.it/api/Scontrino/send",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Errore HTTP:", response.status, errorText);
+
+        switch (response.status) {
+          case 401:
+            alert(
+              "Token di autenticazione scaduto. Effettua nuovamente il login."
+            );
+            break;
+          case 403:
+            alert("Non hai i permessi per emettere scontrini.");
+            break;
+          case 400:
+            alert("Dati dello scontrino non validi. Controlla gli articoli.");
+            break;
+          case 500:
+            alert("Errore del server. Riprova più tardi.");
+            break;
+          default:
+            alert(`Errore durante l'emissione: ${response.status}`);
+        }
+        return;
+      }
+
+      const result = await response.json();
+      console.log("✅ Scontrino emesso:", result);
+
+      if (result.success) {
+        alert(
+          `✅ Scontrino emesso con successo!\nNumero: ${
+            result.data?.numeroScontrino || "N/A"
+          }\nPagamento: ${
+            tipoPagamento === "contanti" ? "Contanti" : "Elettronico"
+          }`
+        );
+
+        // Pulisce l'ordine corrente dopo emissione
+        setCurrentOrder([]);
+        setOrderTotal(0);
+        // NON resettare tipoPagamento qui, mantieni la selezione
+
+        setShowScontrinoModal(false);
+      } else {
+        alert(
+          `⚠️ Problema nell'emissione: ${
+            result.message || "Errore sconosciuto"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("❌ Errore durante emissione scontrino:", error);
+
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        alert("Errore di connessione. Controlla la connessione internet.");
+      } else {
+        alert(`Errore imprevisto: ${error.message}`);
+      }
+    } finally {
+      setIsEmettendoScontrino(false);
+    }
   };
 
   const handleTavoloSelect = async (tavolo) => {
@@ -443,6 +577,7 @@ function CassaPage() {
               Dettaglio Comanda
             </button>
           </div>
+
           <div className="keypad-actions">
             <div className="keypad">
               {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0, "."].map((key) => (
@@ -452,6 +587,35 @@ function CassaPage() {
               ))}
               <button className="keypad-button">CL</button>
               <button className="keypad-button">BACK</button>
+            </div>
+            {/* NUOVO BOX TIPO PAGAMENTO */}
+            <div className="tipo-pagamento-box">
+              <h4 className="tipo-pagamento-title">Tipo Pagamento</h4>
+              <div className="tipo-pagamento-options">
+                <label className="tipo-pagamento-option">
+                  <input
+                    type="radio"
+                    name="tipoPagamento"
+                    value="contanti"
+                    checked={tipoPagamento === "contanti"}
+                    onChange={(e) => setTipoPagamento(e.target.value)}
+                  />
+                  <span className="tipo-pagamento-icon">💵</span>
+                  <span className="tipo-pagamento-label">Contanti</span>
+                </label>
+
+                <label className="tipo-pagamento-option">
+                  <input
+                    type="radio"
+                    name="tipoPagamento"
+                    value="elettronico"
+                    checked={tipoPagamento === "elettronico"}
+                    onChange={(e) => setTipoPagamento(e.target.value)}
+                  />
+                  <span className="tipo-pagamento-icon">💳</span>
+                  <span className="tipo-pagamento-label">Elettronico</span>
+                </label>
+              </div>
             </div>
             <div className="action-buttons">
               <button className="action-button">Sconto</button>
@@ -636,6 +800,24 @@ function CassaPage() {
                 <strong>TOTALE: € {orderTotal.toFixed(2)}</strong>
               </div>
 
+              {/* Mostra il tipo di pagamento selezionato */}
+              <div className="scontrino-pagamento-info">
+                <p
+                  style={{
+                    margin: "15px 0 5px 0",
+                    fontSize: "12px",
+                    textAlign: "center",
+                  }}
+                >
+                  <strong>
+                    PAGAMENTO:{" "}
+                    {tipoPagamento === "contanti"
+                      ? "💵 CONTANTI"
+                      : "💳 ELETTRONICO"}
+                  </strong>
+                </p>
+              </div>
+
               <div className="scontrino-footer">
                 <p>Trans. n. 1</p>
                 <p>TS DCW2025/9345-9669</p>
@@ -650,12 +832,41 @@ function CassaPage() {
               >
                 Chiudi Anteprima
               </button>
+
               <button
                 className="btn btn-primary"
-                onClick={() => setShowScontrinoModal(false)}
-                style={{ marginTop: 20 }}
+                onClick={handleEmettiScontrino}
+                disabled={isEmettendoScontrino || currentOrder.length === 0}
+                style={{
+                  marginTop: 10,
+                  backgroundColor: isEmettendoScontrino ? "#6c757d" : "#28a745",
+                  cursor:
+                    isEmettendoScontrino || currentOrder.length === 0
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    isEmettendoScontrino || currentOrder.length === 0 ? 0.6 : 1,
+                }}
               >
-                Emetti Scontrino
+                {isEmettendoScontrino ? (
+                  <>
+                    <span>Emettendo...</span>
+                    <div
+                      style={{
+                        display: "inline-block",
+                        marginLeft: "8px",
+                        width: "12px",
+                        height: "12px",
+                        border: "2px solid #ffffff",
+                        borderTop: "2px solid transparent",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    ></div>
+                  </>
+                ) : (
+                  "🧾 Emetti Scontrino"
+                )}
               </button>
             </div>
           </div>
