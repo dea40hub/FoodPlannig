@@ -89,136 +89,149 @@ function CassaPage() {
     setFormData((prev) => ({ ...prev, ...fakeResponse }));
   };
 
+  // Funzione per emettere lo scontrino
   const handleEmettiScontrino = async () => {
-    setIsEmettendoScontrino(true);
+  setIsEmettendoScontrino(true);
 
-    try {
-      const authToken = sessionStorage.getItem("authToken");
-      if (!authToken) {
-        alert(
-          "Token di autenticazione non trovato. Effettua nuovamente il login."
-        );
-        return;
-      }
-
-      if (currentOrder.length === 0) {
-        alert("Nessun articolo da emettere nello scontrino.");
-        return;
-      }
-
-      // Calcola i pagamenti in base alla selezione
-      const pagamentoContante = tipoPagamento === "contanti" ? orderTotal : 0;
-      const pagamentoElettronico =
-        tipoPagamento === "elettronico" ? orderTotal : 0;
-
-      const payload = {
-        tokenAPI:
-          "TJd7UH0aVPsDEUEMP8MC8VH7udfSiQgAXaXRkaqdioOOam7aGh9hmER7gxRJ859s",
-        idSede: "FFBF96AE-ED56-47B1-BBDA-70DC24C74321",
-        scontrino: {
-          dettaglio: currentOrder.map((item) => ({
-            codiceIva: "22",
-            descrizione: item.nome,
-            prezzo: item.price,
-            quantita: item.quantity,
-            codiceArticolo: "",
-            valoresconto: 0,
-            omaggio: false,
-          })),
-          oid: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
-          numero: 0,
-          etichetta: selectedTable
-            ? `Tavolo ${selectedTable.nome || selectedTable.numero}`
-            : "",
-          codiceFiscale: "",
-          pagamentoContante: pagamentoContante,
-          pagamentoElettronico: pagamentoElettronico,
-          pagamentoTicket: 0,
-          numeroTicket: 0,
-          scontoAbbuono: 0,
-          nonRiscossoPrestazioni: 0,
-          nonRiscossoCredito: 0,
-          codiceLotteria: "",
-        },
-      };
-
-      console.log("📤 Invio scontrino:", payload);
-
-      const response = await fetch(
-        "https://apiwhrtest.dea40.it/api/Scontrino/send",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Errore HTTP:", response.status, errorText);
-
-        switch (response.status) {
-          case 401:
-            alert(
-              "Token di autenticazione scaduto. Effettua nuovamente il login."
-            );
-            break;
-          case 403:
-            alert("Non hai i permessi per emettere scontrini.");
-            break;
-          case 400:
-            alert("Dati dello scontrino non validi. Controlla gli articoli.");
-            break;
-          case 500:
-            alert("Errore del server. Riprova più tardi.");
-            break;
-          default:
-            alert(`Errore durante l'emissione: ${response.status}`);
-        }
-        return;
-      }
-
-      const result = await response.json();
-      console.log("✅ Scontrino emesso:", result);
-
-      if (result.success) {
-        alert(
-          `✅ Scontrino emesso con successo!\nNumero: ${
-            result.data?.numeroScontrino || "N/A"
-          }\nPagamento: ${
-            tipoPagamento === "contanti" ? "Contanti" : "Elettronico"
-          }`
-        );
-
-        // Pulisce l'ordine corrente dopo emissione
-        setCurrentOrder([]);
-        setOrderTotal(0);
-        // NON resettare tipoPagamento qui, mantieni la selezione
-
-        setShowScontrinoModal(false);
-      } else {
-        alert(
-          `⚠️ Problema nell'emissione: ${
-            result.message || "Errore sconosciuto"
-          }`
-        );
-      }
-    } catch (error) {
-      console.error("❌ Errore durante emissione scontrino:", error);
-
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
-        alert("Errore di connessione. Controlla la connessione internet.");
-      } else {
-        alert(`Errore imprevisto: ${error.message}`);
-      }
-    } finally {
-      setIsEmettendoScontrino(false);
+  try {
+    const authToken = sessionStorage.getItem("authToken");
+    if (!authToken) {
+      alert("Token di autenticazione non trovato. Effettua nuovamente il login.");
+      return;
     }
-  };
+
+    if (currentOrder.length === 0) {
+      alert("Nessun articolo da emettere nello scontrino.");
+      return;
+    }
+
+    // Calcola i pagamenti in base alla selezione
+    const pagamentoContante = tipoPagamento === "contanti" ? orderTotal : 0;
+    const pagamentoElettronico = tipoPagamento === "elettronico" ? orderTotal : 0;
+
+    // Prepara il payload per l'emissione scontrino
+    const payloadScontrino = {
+      tokenAPI: "TJd7UH0aVPsDEUEMP8MC8VH7udfSiQgAXaXRkaqdioOOam7aGh9hmER7gxRJ859s",
+      idSede: "FFBF96AE-ED56-47B1-BBDA-70DC24C74321",
+      scontrino: {
+        dettaglio: currentOrder.map((item) => ({
+          codiceIva: "22",
+          descrizione: item.nome,
+          prezzo: item.price,
+          quantita: item.quantity,
+          codiceArticolo: "",
+          valoresconto: 0,
+          omaggio: false,
+        })),
+        oid: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
+        numero: 0,
+        etichetta: selectedTable ? `Tavolo ${selectedTable.nome || selectedTable.numero}` : "",
+        codiceFiscale: "",
+        pagamentoContante: pagamentoContante,
+        pagamentoElettronico: pagamentoElettronico,
+        pagamentoTicket: 0,
+        numeroTicket: 0,
+        scontoAbbuono: 0,
+        nonRiscossoPrestazioni: 0,
+        nonRiscossoCredito: 0,
+        codiceLotteria: "",
+      },
+    };
+
+    console.log("📤 Invio scontrino:", payloadScontrino);
+
+    // Chiamata API per emettere lo scontrino
+    const response = await fetch("https://apiwhrtest.dea40.it/api/Scontrino/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(payloadScontrino),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Errore HTTP:", response.status, errorText);
+
+      switch (response.status) {
+        case 401:
+          alert("Token di autenticazione scaduto. Effettua nuovamente il login.");
+          break;
+        case 403:
+          alert("Non hai i permessi per emettere scontrini.");
+          break;
+        case 400:
+          alert("Dati dello scontrino non validi. Controlla gli articoli.");
+          break;
+        case 500:
+          alert("Errore del server. Riprova più tardi.");
+          break;
+        default:
+          alert(`Errore durante l'emissione: ${response.status}`);
+      }
+      return;
+    }
+
+    // Processa la risposta di successo
+    const scontrinoResult = await response.json();
+    console.log("✅ Scontrino emesso:", scontrinoResult);
+
+    if (scontrinoResult.success) {
+      // **NUOVA PROCEDURA DI SALVATAGGIO**
+      // Prepara i dati per il salvataggio nel database
+      const payloadSalvataggio = preparaPayloadSalvataggio(
+        payloadScontrino, 
+        scontrinoResult, 
+        selectedTable, 
+        userSession
+      );
+      
+      // Chiama l'API di salvataggio (non blocca se fallisce)
+      const salvataggioreResult = await salvaScontrino(payloadSalvataggio);
+      
+      // Mostra messaggio di successo
+      const numeroScontrino = scontrinoResult.data?.progressivo || scontrinoResult.data?.numeroScontrino || "N/A";
+      const tipoPagamentoText = tipoPagamento === "contanti" ? "Contanti" : "Elettronico";
+      
+      let messaggioSuccesso = `✅ Scontrino emesso con successo!\nNumero: ${numeroScontrino}\nPagamento: ${tipoPagamentoText}`;
+      
+      // Aggiungi info sul salvataggio se disponibile
+      if (salvataggioreResult?.success) {
+        messaggioSuccesso += "\n📁 Dati salvati nel sistema";
+      } else if (salvataggioreResult?.error) {
+        messaggioSuccesso += "\n⚠️ Errore salvataggio dati (scontrino comunque emesso)";
+      }
+
+      alert(messaggioSuccesso);
+
+      // Pulisce l'ordine corrente dopo emissione
+      setCurrentOrder([]);
+      setOrderTotal(0);
+
+      // Chiude il modal
+      setShowScontrinoModal(false);
+      
+      // Opzionale: Potresti anche impostare lo stato del tavolo come "da chiudere"
+      // setSelectedTable(prev => ({ ...prev, stato: "da_chiudere" }));
+      
+    } else {
+      alert(`⚠️ Problema nell'emissione: ${scontrinoResult.message || "Errore sconosciuto"}`);
+    }
+  } catch (error) {
+    console.error("❌ Errore durante emissione scontrino:", error);
+
+    if (error.name === "TypeError" && error.message.includes("fetch")) {
+      alert("Errore di connessione. Controlla la connessione internet.");
+    } else {
+      alert(`Errore imprevisto: ${error.message}`);
+    }
+  } finally {
+    setIsEmettendoScontrino(false);
+  }
+};
+
 
   const handleTavoloSelect = async (tavolo) => {
     console.log("Tavolo selezionato dalla cassa:", tavolo);
@@ -392,6 +405,105 @@ function CassaPage() {
         ruolo: "Operatore Cassa",
         email: "",
       };
+
+  // Preparo i dati per il salvataggio dello scontrino
+  const preparaPayloadSalvataggio = (
+    originalPayload,
+    scontrinoResponse,
+    selectedTable,
+    userSession
+  ) => {
+    const payloadSalvataggio = {
+      // Dati della transazione
+      transazione: {
+        idTransazione: scontrinoResponse.data?.idtrx || "",
+        progressivo: scontrinoResponse.data?.progressivo || "",
+        dataEmissione: scontrinoResponse.data?.data || new Date().toISOString(),
+        totale: scontrinoResponse.data?.totale || 0,
+        numeroScontrino: scontrinoResponse.data?.progressivo || "",
+      },
+
+      // Payload originale della richiesta scontrino
+      payloadOriginale: {
+        tokenAPI: originalPayload.tokenAPI,
+        idSede: originalPayload.idSede,
+        scontrino: originalPayload.scontrino,
+      },
+
+      // Response completa dell'API scontrino
+      responseScontrino: {
+        success: scontrinoResponse.success,
+        message: scontrinoResponse.message,
+        data: scontrinoResponse.data,
+        errors: scontrinoResponse.errors || [],
+        timestamp: scontrinoResponse.timestamp,
+      },
+
+      // Dati del tavolo
+      tavolo: {
+        id: selectedTable?.id || "",
+        nome: selectedTable?.nome || "",
+        numero: selectedTable?.numero || "",
+        stato: "da_chiudere", // Indica che il tavolo deve essere chiuso
+      },
+
+      // Dati dell'operatore
+      operatore: {
+        nomeCompleto:
+          userSession?.nomeCompleto ||
+          `${userSession?.data?.user?.firstName || ""} ${
+            userSession?.data?.user?.lastName || ""
+          }`.trim(),
+        email: userSession?.data?.user?.email || "",
+        companyName: userSession?.data?.user?.companyName || "",
+        ruolo: userSession?.ruoloSelezionato || "Operatore Cassa",
+        userId: userSession?.data?.user?.id || "",
+      },
+
+      // Metadati
+      metadati: {
+        timestampElaborazione: new Date().toISOString(),
+        tipoOperazione: "emissione_scontrino",
+        versione: "1.0",
+      },
+    };
+
+    return payloadSalvataggio;
+  };
+
+  // Chiamata API per salvataggio scontrino
+
+const salvaScontrino = async (payloadSalvataggio) => {
+  try {
+    const authToken = sessionStorage.getItem("authToken");
+    
+    console.log("📤 Invio dati salvataggio scontrino:", payloadSalvataggio);
+    
+    // URL corretto per il progetto VendoloApi
+    const response = await fetch("https://vendoloapitest.dea40.it/api/test/salvaScontrino", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(payloadSalvataggio),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Errore salvataggio: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Scontrino salvato nel database:", result);
+    
+    return result;
+  } catch (error) {
+    console.error("❌ Errore durante il salvataggio dello scontrino:", error);
+    // Non bloccare il flusso principale, solo logga l'errore
+    return { success: false, error: error.message };
+  }
+};
 
   return (
     <div className="cassa-page">
