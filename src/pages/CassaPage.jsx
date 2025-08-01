@@ -39,6 +39,10 @@ function CassaPage() {
   const [isEmettendoScontrino, setIsEmettendoScontrino] = useState(false);
   const [tipoPagamento, setTipoPagamento] = useState("contanti");
 
+  // NUOVI STATI PER PAGAMENTO MISTO
+  const [importoContanti, setImportoContanti] = useState("");
+  const [importoElettronico, setImportoElettronico] = useState("");
+
   // Recupera i dati dell'utente dalla sessione
   useEffect(() => {
     const session = sessionStorage.getItem("userSession");
@@ -89,149 +93,251 @@ function CassaPage() {
     setFormData((prev) => ({ ...prev, ...fakeResponse }));
   };
 
+  // FUNZIONE PER GESTIRE IL CAMBIO TIPO PAGAMENTO
+  const handleTipoPagamentoChange = (nuovoTipo) => {
+    setTipoPagamento(nuovoTipo);
+
+    // Reset dei campi importi quando si cambia tipo
+    if (nuovoTipo !== "misto") {
+      setImportoContanti("");
+      setImportoElettronico("");
+    } else {
+      // Se si seleziona misto, inizializza con tutto in contanti
+      setImportoContanti(orderTotal.toFixed(2));
+      setImportoElettronico("0.00");
+    }
+  };
+
+  // FUNZIONE PER GESTIRE CAMBIO IMPORTI NEL PAGAMENTO MISTO
+  const handleImportoChange = (tipo, valore) => {
+    const importoNumerico = parseFloat(valore) || 0;
+
+    if (tipo === "contanti") {
+      setImportoContanti(valore);
+      // Calcola automaticamente l'elettronico come differenza
+      const elettronico = Math.max(0, orderTotal - importoNumerico);
+      setImportoElettronico(elettronico.toFixed(2));
+    } else {
+      setImportoElettronico(valore);
+      // Calcola automaticamente i contanti come differenza
+      const contanti = Math.max(0, orderTotal - importoNumerico);
+      setImportoContanti(contanti.toFixed(2));
+    }
+  };
+
+  // FUNZIONE PER VALIDARE IL PAGAMENTO MISTO
+  const validaPagamentoMisto = () => {
+    if (tipoPagamento !== "misto") return true;
+
+    const contanti = parseFloat(importoContanti) || 0;
+    const elettronico = parseFloat(importoElettronico) || 0;
+    const somma = contanti + elettronico;
+
+    return Math.abs(somma - orderTotal) < 0.01; // Tolleranza per errori di arrotondamento
+  };
+
   // Funzione per emettere lo scontrino
   const handleEmettiScontrino = async () => {
-  setIsEmettendoScontrino(true);
+    setIsEmettendoScontrino(true);
 
-  try {
-    const authToken = sessionStorage.getItem("authToken");
-    if (!authToken) {
-      alert("Token di autenticazione non trovato. Effettua nuovamente il login.");
-      return;
-    }
+    try {
+      const authToken = sessionStorage.getItem("authToken");
+      if (!authToken) {
+        alert(
+          "Token di autenticazione non trovato. Effettua nuovamente il login."
+        );
+        return;
+      }
 
-    if (currentOrder.length === 0) {
-      alert("Nessun articolo da emettere nello scontrino.");
-      return;
-    }
+      if (currentOrder.length === 0) {
+        alert("Nessun articolo da emettere nello scontrino.");
+        return;
+      }
 
-    // Calcola i pagamenti in base alla selezione
-    const pagamentoContante = tipoPagamento === "contanti" ? orderTotal : 0;
-    const pagamentoElettronico = tipoPagamento === "elettronico" ? orderTotal : 0;
+      // VALIDAZIONE PAGAMENTO MISTO
+      if (!validaPagamentoMisto()) {
+        alert(
+          "ERRORE: La somma degli importi non corrisponde al totale dello scontrino!"
+        );
+        return;
+      }
 
-    // Prepara il payload per l'emissione scontrino
-    const payloadScontrino = {
-      tokenAPI: "TJd7UH0aVPsDEUEMP8MC8VH7udfSiQgAXaXRkaqdioOOam7aGh9hmER7gxRJ859s",
-      idSede: "FFBF96AE-ED56-47B1-BBDA-70DC24C74321",
-      scontrino: {
-        dettaglio: currentOrder.map((item) => ({
-          codiceIva: "22",
-          descrizione: item.nome,
-          prezzo: item.price,
-          quantita: item.quantity,
-          codiceArticolo: "",
-          valoresconto: 0,
-          omaggio: false,
-        })),
-        oid: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
-        numero: 0,
-        etichetta: selectedTable ? `Tavolo ${selectedTable.nome || selectedTable.numero}` : "",
-        codiceFiscale: "",
-        pagamentoContante: pagamentoContante,
-        pagamentoElettronico: pagamentoElettronico,
-        pagamentoTicket: 0,
-        numeroTicket: 0,
-        scontoAbbuono: 0,
-        nonRiscossoPrestazioni: 0,
-        nonRiscossoCredito: 0,
-        codiceLotteria: "",
-      },
-    };
+      // Calcola i pagamenti in base alla selezione
+      let pagamentoContante = 0;
+      let pagamentoElettronico = 0;
 
-    console.log("📤 Invio scontrino:", payloadScontrino);
-
-    // Chiamata API per emettere lo scontrino
-    const response = await fetch("https://apiwhrtest.dea40.it/api/Scontrino/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(payloadScontrino),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ Errore HTTP:", response.status, errorText);
-
-      switch (response.status) {
-        case 401:
-          alert("Token di autenticazione scaduto. Effettua nuovamente il login.");
+      switch (tipoPagamento) {
+        case "contanti":
+          pagamentoContante = orderTotal;
+          pagamentoElettronico = 0;
           break;
-        case 403:
-          alert("Non hai i permessi per emettere scontrini.");
+        case "elettronico":
+          pagamentoContante = 0;
+          pagamentoElettronico = orderTotal;
           break;
-        case 400:
-          alert("Dati dello scontrino non validi. Controlla gli articoli.");
-          break;
-        case 500:
-          alert("Errore del server. Riprova più tardi.");
+        case "misto":
+          pagamentoContante = parseFloat(importoContanti) || 0;
+          pagamentoElettronico = parseFloat(importoElettronico) || 0;
           break;
         default:
-          alert(`Errore durante l'emissione: ${response.status}`);
+          pagamentoContante = orderTotal;
+          pagamentoElettronico = 0;
       }
-      return;
-    }
 
-    // Processa la risposta di successo
-    const scontrinoResult = await response.json();
-    console.log("✅ Scontrino emesso:", scontrinoResult);
+      // Prepara il payload per l'emissione scontrino
+      const payloadScontrino = {
+        tokenAPI:
+          "TJd7UH0aVPsDEUEMP8MC8VH7udfSiQgAXaXRkaqdioOOam7aGh9hmER7gxRJ859s",
+        idSede: "FFBF96AE-ED56-47B1-BBDA-70DC24C74321",
+        scontrino: {
+          dettaglio: currentOrder.map((item) => ({
+            codiceIva: "22",
+            descrizione: item.nome,
+            prezzo: item.price,
+            quantita: item.quantity,
+            codiceArticolo: "",
+            valoresconto: 0,
+            omaggio: false,
+          })),
+          oid: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
+          numero: 0,
+          etichetta: selectedTable
+            ? `Tavolo ${selectedTable.nome || selectedTable.numero}`
+            : "",
+          codiceFiscale: "",
+          pagamentoContante: pagamentoContante,
+          pagamentoElettronico: pagamentoElettronico,
+          pagamentoTicket: 0,
+          numeroTicket: 0,
+          scontoAbbuono: 0,
+          nonRiscossoPrestazioni: 0,
+          nonRiscossoCredito: 0,
+          codiceLotteria: "",
+        },
+      };
 
-    if (scontrinoResult.success) {
-      // **NUOVA PROCEDURA DI SALVATAGGIO**
-      // Prepara i dati per il salvataggio nel database
-      const payloadSalvataggio = preparaPayloadSalvataggio(
-        payloadScontrino, 
-        scontrinoResult, 
-        selectedTable, 
-        userSession
+      console.log("📤 Invio scontrino:", payloadScontrino);
+
+      // Chiamata API per emettere lo scontrino
+      const response = await fetch(
+        "https://apiwhrtest.dea40.it/api/Scontrino/send",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(payloadScontrino),
+        }
       );
-      
-      // Chiama l'API di salvataggio (non blocca se fallisce)
-      const salvataggioreResult = await salvaScontrino(payloadSalvataggio);
-      
-      // Mostra messaggio di successo
-      const numeroScontrino = scontrinoResult.data?.progressivo || scontrinoResult.data?.numeroScontrino || "N/A";
-      const tipoPagamentoText = tipoPagamento === "contanti" ? "Contanti" : "Elettronico";
-      
-      let messaggioSuccesso = `✅ Scontrino emesso con successo!\nNumero: ${numeroScontrino}\nPagamento: ${tipoPagamentoText}`;
-      
-      // Aggiungi info sul salvataggio se disponibile
-      if (salvataggioreResult?.success) {
-        messaggioSuccesso += "\n📁 Dati salvati nel sistema";
-      } else if (salvataggioreResult?.error) {
-        messaggioSuccesso += "\n⚠️ Errore salvataggio dati (scontrino comunque emesso)";
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Errore HTTP:", response.status, errorText);
+
+        switch (response.status) {
+          case 401:
+            alert(
+              "Token di autenticazione scaduto. Effettua nuovamente il login."
+            );
+            break;
+          case 403:
+            alert("Non hai i permessi per emettere scontrini.");
+            break;
+          case 400:
+            alert("Dati dello scontrino non validi. Controlla gli articoli.");
+            break;
+          case 500:
+            alert("Errore del server. Riprova più tardi.");
+            break;
+          default:
+            alert(`Errore durante l'emissione: ${response.status}`);
+        }
+        return;
       }
 
-      alert(messaggioSuccesso);
+      // Processa la risposta di successo
+      const scontrinoResult = await response.json();
+      console.log("✅ Scontrino emesso:", scontrinoResult);
 
-      // Pulisce l'ordine corrente dopo emissione
-      setCurrentOrder([]);
-      setOrderTotal(0);
+      if (scontrinoResult.success) {
+        // **NUOVA PROCEDURA DI SALVATAGGIO**
+        // Prepara i dati per il salvataggio nel database
+        const payloadSalvataggio = preparaPayloadSalvataggio(
+          payloadScontrino,
+          scontrinoResult,
+          selectedTable,
+          userSession
+        );
 
-      // Chiude il modal
-      setShowScontrinoModal(false);
-      
-      // Opzionale: Potresti anche impostare lo stato del tavolo come "da chiudere"
-      // setSelectedTable(prev => ({ ...prev, stato: "da_chiudere" }));
-      
-    } else {
-      alert(`⚠️ Problema nell'emissione: ${scontrinoResult.message || "Errore sconosciuto"}`);
+        // Chiama l'API di salvataggio (non blocca se fallisce)
+        const salvataggioreResult = await salvaScontrino(payloadSalvataggio);
+
+        // Mostra messaggio di successo
+        const numeroScontrino =
+          scontrinoResult.data?.progressivo ||
+          scontrinoResult.data?.numeroScontrino ||
+          "N/A";
+
+        let tipoPagamentoText = "";
+        switch (tipoPagamento) {
+          case "contanti":
+            tipoPagamentoText = "Contanti";
+            break;
+          case "elettronico":
+            tipoPagamentoText = "Elettronico";
+            break;
+          case "misto":
+            tipoPagamentoText = `Misto (€${pagamentoContante.toFixed(
+              2
+            )} contanti + €${pagamentoElettronico.toFixed(2)} elettronico)`;
+            break;
+          default:
+            tipoPagamentoText = "Non specificato";
+        }
+
+        let messaggioSuccesso = `✅ Scontrino emesso con successo!\nNumero: ${numeroScontrino}\nPagamento: ${tipoPagamentoText}`;
+
+        // Aggiungi info sul salvataggio se disponibile
+        if (salvataggioreResult?.success) {
+          messaggioSuccesso += "\n📁 Dati salvati nel sistema";
+        } else if (salvataggioreResult?.error) {
+          messaggioSuccesso +=
+            "\n⚠️ Errore salvataggio dati (scontrino comunque emesso)";
+        }
+
+        alert(messaggioSuccesso);
+
+        // Pulisce l'ordine corrente dopo emissione
+        setCurrentOrder([]);
+        setOrderTotal(0);
+
+        // Reset campi pagamento misto
+        setImportoContanti("");
+        setImportoElettronico("");
+
+        // Chiude il modal
+        setShowScontrinoModal(false);
+      } else {
+        alert(
+          `⚠️ Problema nell'emissione: ${
+            scontrinoResult.message || "Errore sconosciuto"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("❌ Errore durante emissione scontrino:", error);
+
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        alert("Errore di connessione. Controlla la connessione internet.");
+      } else {
+        alert(`Errore imprevisto: ${error.message}`);
+      }
+    } finally {
+      setIsEmettendoScontrino(false);
     }
-  } catch (error) {
-    console.error("❌ Errore durante emissione scontrino:", error);
-
-    if (error.name === "TypeError" && error.message.includes("fetch")) {
-      alert("Errore di connessione. Controlla la connessione internet.");
-    } else {
-      alert(`Errore imprevisto: ${error.message}`);
-    }
-  } finally {
-    setIsEmettendoScontrino(false);
-  }
-};
-
+  };
 
   const handleTavoloSelect = async (tavolo) => {
     console.log("Tavolo selezionato dalla cassa:", tavolo);
@@ -291,7 +397,28 @@ function CassaPage() {
       0
     );
     setOrderTotal(total);
-  }, [currentOrder]);
+
+    // Se è selezionato pagamento misto, aggiorna gli importi
+    if (tipoPagamento === "misto" && total > 0) {
+      const contantiAttuali = parseFloat(importoContanti) || 0;
+      const elettronicoAttuali = parseFloat(importoElettronico) || 0;
+      const sommaAttuali = contantiAttuali + elettronicoAttuali;
+
+      // Se la somma attuale è diversa dal nuovo totale, regola proporzionalmente
+      if (Math.abs(sommaAttuali - total) > 0.01) {
+        if (sommaAttuali > 0) {
+          // Mantieni la proporzione
+          const ratioContanti = contantiAttuali / sommaAttuali;
+          setImportoContanti((total * ratioContanti).toFixed(2));
+          setImportoElettronico((total * (1 - ratioContanti)).toFixed(2));
+        } else {
+          // Se non c'era nessun importo, metti tutto in contanti
+          setImportoContanti(total.toFixed(2));
+          setImportoElettronico("0.00");
+        }
+      }
+    }
+  }, [currentOrder, tipoPagamento, importoContanti, importoElettronico]);
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
@@ -473,37 +600,42 @@ function CassaPage() {
 
   // Chiamata API per salvataggio scontrino
 
-const salvaScontrino = async (payloadSalvataggio) => {
-  try {
-    const authToken = sessionStorage.getItem("authToken");
-    
-    console.log("📤 Invio dati salvataggio scontrino:", payloadSalvataggio);
-    
-    // URL corretto per il progetto VendoloApi
-    const response = await fetch("https://vendoloapitest.dea40.it/api/test/salvaScontrino", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(payloadSalvataggio),
-    });
+  const salvaScontrino = async (payloadSalvataggio) => {
+    try {
+      const authToken = sessionStorage.getItem("authToken");
 
-    if (!response.ok) {
-      throw new Error(`Errore salvataggio: ${response.status} ${response.statusText}`);
+      console.log("📤 Invio dati salvataggio scontrino:", payloadSalvataggio);
+
+      // URL corretto per il progetto VendoloApi
+      const response = await fetch(
+        "https://vendoloapitest.dea40.it/api/test/salvaScontrino",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(payloadSalvataggio),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Errore salvataggio: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const result = await response.json();
+      console.log("✅ Scontrino salvato nel database:", result);
+
+      return result;
+    } catch (error) {
+      console.error("❌ Errore durante il salvataggio dello scontrino:", error);
+      // Non bloccare il flusso principale, solo logga l'errore
+      return { success: false, error: error.message };
     }
-
-    const result = await response.json();
-    console.log("✅ Scontrino salvato nel database:", result);
-    
-    return result;
-  } catch (error) {
-    console.error("❌ Errore durante il salvataggio dello scontrino:", error);
-    // Non bloccare il flusso principale, solo logga l'errore
-    return { success: false, error: error.message };
-  }
-};
+  };
 
   return (
     <div className="cassa-page">
@@ -700,7 +832,8 @@ const salvaScontrino = async (payloadSalvataggio) => {
               <button className="keypad-button">CL</button>
               <button className="keypad-button">BACK</button>
             </div>
-            {/* NUOVO BOX TIPO PAGAMENTO */}
+
+            {/* BOX TIPO PAGAMENTO AGGIORNATO */}
             <div className="tipo-pagamento-box">
               <h4 className="tipo-pagamento-title">Tipo Pagamento</h4>
               <div className="tipo-pagamento-options">
@@ -710,7 +843,7 @@ const salvaScontrino = async (payloadSalvataggio) => {
                     name="tipoPagamento"
                     value="contanti"
                     checked={tipoPagamento === "contanti"}
-                    onChange={(e) => setTipoPagamento(e.target.value)}
+                    onChange={(e) => handleTipoPagamentoChange(e.target.value)}
                   />
                   <span className="tipo-pagamento-icon">💵</span>
                   <span className="tipo-pagamento-label">Contanti</span>
@@ -722,13 +855,84 @@ const salvaScontrino = async (payloadSalvataggio) => {
                     name="tipoPagamento"
                     value="elettronico"
                     checked={tipoPagamento === "elettronico"}
-                    onChange={(e) => setTipoPagamento(e.target.value)}
+                    onChange={(e) => handleTipoPagamentoChange(e.target.value)}
                   />
                   <span className="tipo-pagamento-icon">💳</span>
                   <span className="tipo-pagamento-label">Elettronico</span>
                 </label>
+
+                <label className="tipo-pagamento-option">
+                  <input
+                    type="radio"
+                    name="tipoPagamento"
+                    value="misto"
+                    checked={tipoPagamento === "misto"}
+                    onChange={(e) => handleTipoPagamentoChange(e.target.value)}
+                  />
+                  <span className="tipo-pagamento-icon">🔄</span>
+                  <span className="tipo-pagamento-label">Pagamento Misto</span>
+                </label>
               </div>
+
+              {/* CAMPI PER PAGAMENTO MISTO */}
+              {tipoPagamento === "misto" && (
+                <div className="pagamento-misto-inputs">
+                  <div className="misto-input-group">
+                    <label className="misto-label">
+                      <span className="misto-icon">💵</span>
+                      Contanti:
+                    </label>
+                    <input
+                      type="number"
+                      className="misto-input"
+                      value={importoContanti}
+                      onChange={(e) =>
+                        handleImportoChange("contanti", e.target.value)
+                      }
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                      max={orderTotal}
+                    />
+                  </div>
+
+                  <div className="misto-input-group">
+                    <label className="misto-label">
+                      <span className="misto-icon">💳</span>
+                      Elettronico:
+                    </label>
+                    <input
+                      type="number"
+                      className="misto-input"
+                      value={importoElettronico}
+                      onChange={(e) =>
+                        handleImportoChange("elettronico", e.target.value)
+                      }
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                      max={orderTotal}
+                    />
+                  </div>
+
+                  <div className="misto-validation">
+                    {validaPagamentoMisto() ? (
+                      <span className="misto-valid">✅ Importi corretti</span>
+                    ) : (
+                      <span className="misto-invalid">
+                        ❌ Totale: €
+                        {(
+                          (parseFloat(importoContanti) || 0) +
+                          (parseFloat(importoElettronico) || 0)
+                        ).toFixed(2)}
+                        / Richiesto: €{orderTotal.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+
             <div className="action-buttons">
               <button className="action-button">Sconto</button>
               <button className="action-button">Chiudi Tavolo</button>
@@ -912,7 +1116,7 @@ const salvaScontrino = async (payloadSalvataggio) => {
                 <strong>TOTALE: € {orderTotal.toFixed(2)}</strong>
               </div>
 
-              {/* Mostra il tipo di pagamento selezionato */}
+              {/* Mostra il tipo di pagamento selezionato AGGIORNATO */}
               <div className="scontrino-pagamento-info">
                 <p
                   style={{
@@ -922,10 +1126,16 @@ const salvaScontrino = async (payloadSalvataggio) => {
                   }}
                 >
                   <strong>
-                    PAGAMENTO:{" "}
-                    {tipoPagamento === "contanti"
-                      ? "💵 CONTANTI"
-                      : "💳 ELETTRONICO"}
+                    PAGAMENTO: {tipoPagamento === "contanti" && "💵 CONTANTI"}
+                    {tipoPagamento === "elettronico" && "💳 ELETTRONICO"}
+                    {tipoPagamento === "misto" && (
+                      <>
+                        🔄 MISTO
+                        <br />
+                        💵 €{(parseFloat(importoContanti) || 0).toFixed(2)} + 💳
+                        €{(parseFloat(importoElettronico) || 0).toFixed(2)}
+                      </>
+                    )}
                   </strong>
                 </p>
               </div>
@@ -948,16 +1158,31 @@ const salvaScontrino = async (payloadSalvataggio) => {
               <button
                 className="btn btn-primary"
                 onClick={handleEmettiScontrino}
-                disabled={isEmettendoScontrino || currentOrder.length === 0}
+                disabled={
+                  isEmettendoScontrino ||
+                  currentOrder.length === 0 ||
+                  !validaPagamentoMisto()
+                }
                 style={{
                   marginTop: 10,
-                  backgroundColor: isEmettendoScontrino ? "#6c757d" : "#28a745",
+                  backgroundColor:
+                    isEmettendoScontrino ||
+                    currentOrder.length === 0 ||
+                    !validaPagamentoMisto()
+                      ? "#6c757d"
+                      : "#28a745",
                   cursor:
-                    isEmettendoScontrino || currentOrder.length === 0
+                    isEmettendoScontrino ||
+                    currentOrder.length === 0 ||
+                    !validaPagamentoMisto()
                       ? "not-allowed"
                       : "pointer",
                   opacity:
-                    isEmettendoScontrino || currentOrder.length === 0 ? 0.6 : 1,
+                    isEmettendoScontrino ||
+                    currentOrder.length === 0 ||
+                    !validaPagamentoMisto()
+                      ? 0.6
+                      : 1,
                 }}
               >
                 {isEmettendoScontrino ? (
@@ -980,6 +1205,23 @@ const salvaScontrino = async (payloadSalvataggio) => {
                   "🧾 Emetti Scontrino"
                 )}
               </button>
+
+              {/* Messaggio di errore se pagamento misto non valido */}
+              {tipoPagamento === "misto" && !validaPagamentoMisto() && (
+                <div
+                  style={{
+                    marginTop: "10px",
+                    padding: "8px",
+                    backgroundColor: "#ffe6e6",
+                    border: "1px solid #ff9999",
+                    borderRadius: "4px",
+                    fontSize: "11px",
+                    color: "#cc0000",
+                  }}
+                >
+                  ⚠️ Verificare gli importi del pagamento misto
+                </div>
+              )}
             </div>
           </div>
         </div>
