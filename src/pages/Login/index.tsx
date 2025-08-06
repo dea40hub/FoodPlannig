@@ -25,7 +25,7 @@ interface LoginResponse {
       companyName: string;
     };
   };
-  errors: any[];
+  errors: string[];
   timestamp: string;
 }
 
@@ -170,50 +170,50 @@ const LoginPage: React.FC = () => {
   };
 
   // Utility per verificare se il token è scaduto (opzionale, per uso futuro)
-  const isTokenExpired = (expiresAt: string): boolean => {
-    return new Date() >= new Date(expiresAt);
-  };
+  // const isTokenExpired = (expiresAt: string): boolean => {
+  //   return new Date() >= new Date(expiresAt);
+  // };
 
   // Funzioni di utilità per recuperare i dati salvati (esporta queste in un file utils se necessario)
-  const getUserSession = () => {
-    const session = sessionStorage.getItem('userSession');
-    return session ? JSON.parse(session) : null;
-  };
+  // const getUserSession = () => {
+  //   const session = sessionStorage.getItem('userSession');
+  //   return session ? JSON.parse(session) : null;
+  // };
 
-  const getAuthToken = () => sessionStorage.getItem('authToken');
+  // const getAuthToken = () => sessionStorage.getItem('authToken');
   
-  const getCompanyInfo = () => ({
-    id: sessionStorage.getItem('companyId'),
-    name: sessionStorage.getItem('companyName')
-  });
+  // const getCompanyInfo = () => ({
+  //   id: sessionStorage.getItem('companyId'),
+  //   name: sessionStorage.getItem('companyName')
+  // });
 
-  const getUserInfo = () => ({
-    id: sessionStorage.getItem('userId'),
-    email: sessionStorage.getItem('userEmail'),
-    roles: JSON.parse(sessionStorage.getItem('userRoles') || '[]')
-  });
+  // const getUserInfo = () => ({
+  //   id: sessionStorage.getItem('userId'),
+  //   email: sessionStorage.getItem('userEmail'),
+  //   roles: JSON.parse(sessionStorage.getItem('userRoles') || '[]')
+  // });
 
   // Funzione per controllare se l'utente è ancora loggato e il token è valido
-  const isUserLoggedIn = () => {
-    const session = getUserSession();
-    if (!session || !session.data.accessToken) return false;
+  // const isUserLoggedIn = () => {
+  //   const session = getUserSession();
+  //   if (!session || !session.data.accessToken) return false;
     
-    // Controlla se il token è scaduto
-    return !isTokenExpired(session.data.expiresAt);
-  };
+  //   // Controlla se il token è scaduto
+  //   return !isTokenExpired(session.data.expiresAt);
+  // };
 
   // Funzione per il logout (pulisce tutti i dati)
-  const logout = () => {
-    sessionStorage.removeItem('userSession');
-    sessionStorage.removeItem('currentCameriere');
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('refreshToken');
-    sessionStorage.removeItem('companyId');
-    sessionStorage.removeItem('companyName');
-    sessionStorage.removeItem('userId');
-    sessionStorage.removeItem('userEmail');
-    sessionStorage.removeItem('userRoles');
-  };
+  // const logout = () => {
+  //   sessionStorage.removeItem('userSession');
+  //   sessionStorage.removeItem('currentCameriere');
+  //   sessionStorage.removeItem('authToken');
+  //   sessionStorage.removeItem('refreshToken');
+  //   sessionStorage.removeItem('companyId');
+  //   sessionStorage.removeItem('companyName');
+  //   sessionStorage.removeItem('userId');
+  //   sessionStorage.removeItem('userEmail');
+  //   sessionStorage.removeItem('userRoles');
+  // };
 
   return (
     <div className={styles.loginContainer}>
