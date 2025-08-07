@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm run dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE .*starting dev server",
+          "endsPattern": "ready in .*ms"
+        }
+      }
+    },
+    {
+      "label": "start-chrome-debug",
+      "type": "process",
+      "command": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "args": [
+        "--remote-debugging-port=9222",
+        "--user-data-dir=C:\\temp\\chrome-debug",
+        "http://localhost:5173"
+      ]
+    },
+    {
+      "label": "start-dev-and-chrome",
+      "dependsOn": ["npm run dev", "start-chrome-debug"],
+      "dependsOrder": "sequence"
+    }
+  ]
+}

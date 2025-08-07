@@ -43,17 +43,42 @@
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}"
     },
-     {
+    {
       "type": "msedge",
       "request": "attach",
       "name": "Attach to Edge",
       "port": 9222
     },
-     {
+    {
       "type": "chrome",
       "request": "attach",
       "name": "Attach to Chrome",
       "port": 9222
-    }
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome with remote debug",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "runtimeExecutable": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "runtimeArgs": [
+        "--remote-debugging-port=9222",
+        "--user-data-dir=C:\\temp\\chrome-debug"
+      ]
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome with remote debug and dev server",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "runtimeExecutable": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "runtimeArgs": [
+        "--remote-debugging-port=9222",
+        "--user-data-dir=C:\\temp\\chrome-debug"
+      ],
+      // "preLaunchTask": "start-dev-and-chrome"
+    }    
   ]
 }
