@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import LoginPage from "./pages/login"; // Importa la nuova pagina di login
+import LoginPage from "./pages/Login"; // Importa la nuova pagina di login
 import SalaPage from "./pages/SalaPage";
 import CucinaPage from "./pages/CucinaPage";
 import CassaPage from "./pages/CassaPage";
