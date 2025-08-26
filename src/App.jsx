@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import LoginPage from "./pages/Login"; // Importa la nuova pagina di login
 import SalaPage from "./pages/SalaPage";
-import CucinaPage from "./pages/cucina/CucinaPage"; // Percorso corretto per CucinaPage
+import CucinaPage from "./pages/Cucina/CucinaPage";
 import CassaPage from "./pages/CassaPage";
 import "./App.css";
 
