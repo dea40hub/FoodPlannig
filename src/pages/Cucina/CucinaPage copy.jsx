@@ -10,9 +10,6 @@ function CucinaPage() {
   const [modalDettaglio, setModalDettaglio] = useState(null);
   const [userSession, setUserSession] = useState(null);
 
-  // ✅ CONFIGURAZIONE API
-  const API_URL = import.meta.env.VITE_API_URL;
-
   // Recupera i dati dell'utente dalla sessione
   useEffect(() => {
     const session = sessionStorage.getItem("userSession");
@@ -38,10 +35,10 @@ function CucinaPage() {
     }
   };
 
-  // Polling automatico ogni 60 secondi
+  // Polling automatico ogni 30 secondi
   useEffect(() => {
     loadOrdiniCucina();
-    const interval = setInterval(loadOrdiniCucina, 60000);
+    const interval = setInterval(loadOrdiniCucina, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -50,9 +47,9 @@ function CucinaPage() {
       setLoading(true);
       setError(null);
 
-      // Chiamata API per ottenere tutti gli ordini in cucina     
+      // Chiamata API per ottenere tutti gli ordini in cucina
       const response = await fetch(
-        `${API_URL}/api/test/getOrdiniCucina`,
+        "https://localhost:44327/api/test/getOrdiniCucina",
         {
           method: "POST",
           headers: {
@@ -65,7 +62,7 @@ function CucinaPage() {
         }
       );
 
-      console.log("📹 Response status:", response.status);
+      console.log("🔹 Response status:", response.status);
 
       if (!response.ok) {
         throw new Error(`Errore API: ${response.status} ${response.statusText}`);
@@ -108,7 +105,7 @@ function CucinaPage() {
       console.log("🔄 Aggiornamento stato piatto:", { tavoloId, piattoId, nuovoStato });
 
       const response = await fetch(
-        `${API_URL}/api/test/aggiornaStatoPiatto`,
+        "https://localhost:44327/api/test/aggiornaStatoPiatto",
         {
           method: "POST",
           headers: {
@@ -492,22 +489,6 @@ function CucinaPage() {
 
                       <div className={styles.piattoNome}>{piatto.nome}</div>
 
-                      {/* Stato attuale del piatto */}
-                      <div className={`${styles.statoAttuale} ${getStatoColor(piatto.stato)}`}>
-                        <span className={styles.statoIcon}>
-                          {piatto.stato === "da_preparare" && "🔴"}
-                          {piatto.stato === "in_preparazione" && "🟡"}
-                          {piatto.stato === "pronto" && "🟢"}
-                          {piatto.stato === "servito" && "⚫"}
-                        </span>
-                        <span className={styles.statoText}>
-                          {piatto.stato === "da_preparare" && "DA PREPARARE"}
-                          {piatto.stato === "in_preparazione" && "IN PREPARAZIONE"}
-                          {piatto.stato === "pronto" && "PRONTO"}
-                          {piatto.stato === "servito" && "SERVITO"}
-                        </span>
-                      </div>
-
                       {piatto.note && (
                         <div className={styles.piattoNote}>
                           📝 {piatto.note}
@@ -530,7 +511,7 @@ function CucinaPage() {
                                 )
                               }
                             >
-                              ▶️ Inizia Preparazione
+                              ▶️ Inizia
                             </button>
                           )}
 
@@ -545,7 +526,7 @@ function CucinaPage() {
                                 )
                               }
                             >
-                              ✅ Segna come Pronto
+                              ✅ Pronto
                             </button>
                           )}
 
@@ -560,7 +541,7 @@ function CucinaPage() {
                                 )
                               }
                             >
-                              🍽️ Segna come Servito
+                              🍽️ Servito
                             </button>
                           )}
                         </div>

@@ -13,11 +13,6 @@ function ComandaModal({ tavolo, onClose, onSave }) {
   const [showComandaVisualizzata, setShowComandaVisualizzata] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteComanda, setNoteComanda] = useState("");
-  const [statiPiatti, setStatiPiatti] = useState({}); // Nuovo state per gli stati dei piatti
-  const [loadingStati, setLoadingStati] = useState(false);
-
-  // ✅ CONFIGURAZIONE API
-  const API_URL = import.meta.env.VITE_API_URL;
 
   // Placeholder: Simula caricamento comanda esistente
   useEffect(() => {
@@ -46,92 +41,6 @@ function ComandaModal({ tavolo, onClose, onSave }) {
     }
     loadComandaEsistente();
   }, [tavolo]);
-
-  // Funzione per recuperare gli stati dei piatti in cucina
-  const loadStatiPiatti = async () => {
-    if (!comandaVisualizzata?.Piatti?.length) return;
-
-    setLoadingStati(true);
-    try {
-      // Chiamata API per ottenere gli stati dei piatti di questo tavolo dalla cucina
-      const response = await fetch(`${API_URL}/api/test/getStatiPiattiTavolo`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327",
-          tavoloId: tavolo.id,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          // Crea un mapping piattoId -> stato
-          const statiMap = {};
-          data.stati?.forEach((stato) => {
-            statiMap[stato.piattoId] = stato.stato;
-          });
-          setStatiPiatti(statiMap);
-        }
-      }
-    } catch (err) {
-      console.error("Errore nel caricamento degli stati piatti:", err);
-    } finally {
-      setLoadingStati(false);
-    }
-  };
-
-  // Carica gli stati quando viene visualizzata la comanda
-  useEffect(() => {
-    if (showComandaVisualizzata && comandaVisualizzata?.Piatti?.length) {
-      loadStatiPiatti();
-
-      // Polling ogni 30 secondi per aggiornare gli stati
-      const interval = setInterval(loadStatiPiatti, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [showComandaVisualizzata, comandaVisualizzata]);
-
-  // Funzione per ottenere l'icona e la classe CSS per lo stato
-  const getStatoDisplay = (stato) => {
-    switch (stato) {
-      case "da_preparare":
-        return {
-          icon: "🔴",
-          text: "DA PREPARARE",
-          className: "bg-red-100 text-red-800 border border-red-200",
-        };
-      case "in_preparazione":
-        return {
-          icon: "🟡",
-          text: "IN PREPARAZIONE",
-          className:
-            "bg-orange-100 text-orange-800 border border-orange-200 animate-pulse",
-        };
-      case "pronto":
-        return {
-          icon: "🟢",
-          text: "PRONTO",
-          className:
-            "bg-green-100 text-green-800 border border-green-200 animate-bounce",
-        };
-      case "servito":
-        return {
-          icon: "⚫",
-          text: "SERVITO",
-          className: "bg-gray-100 text-gray-600 border border-gray-200",
-        };
-      default:
-        return {
-          icon: "⚪",
-          text: "NON INVIATO",
-          className: "bg-gray-50 text-gray-500 border border-gray-200",
-        };
-    }
-  };
 
   const handlePiattiChange = (piatti) => {
     setSelectedPiatti(piatti);
@@ -171,15 +80,15 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       console.log("Salvataggio comanda (React):", comandaData);
       console.log("Fetching tavoli...");
 
-      const url = `${API_URL}/api/test/creaComandaTavolo`;
+      const url = "https://vendoloapitest.dea40.it/api/test/creaComandaTavolo";
 
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
       };
 
-      console.log("📹 Endpoint finale:", url);
-      console.log("📹 Headers inviati:", headers);
+      console.log("🔹 Endpoint finale:", url);
+      console.log("🔹 Headers inviati:", headers);
       console.log(
         "🚀 Fetch sta per inviare la richiesta della lista dei tavoli della sala ..."
       );
@@ -239,7 +148,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
 
       console.log("Invio comanda in cucina:", payload);
 
-      const url = `${API_URL}/api/test/sendToKitchen`;
+      const url = "https://vendoloapitest.dea40.it/api/test/sendToKitchen";
 
       const headers = {
         Accept: "application/json",
@@ -270,9 +179,6 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       // ✅ Mostra popup di conferma
       alert(`✅ Comanda inviata in cucina per il tavolo ${tavolo.numero}`);
 
-      // Aggiorna gli stati dopo l'invio
-      setTimeout(loadStatiPiatti, 1000);
-
       onClose();
     } catch (err) {
       console.error("Errore nel salvataggio della comanda:", err);
@@ -284,7 +190,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
 
   const visualizzaComanda = async () => {
     try {
-      const url = `${API_URL}/api/test/getComandaPerTavolo?idTavolo=${tavolo.id}`;
+      const url = `https://vendoloapitest.Dea40.it/api/test/getComandaPerTavolo?idTavolo=${tavolo.id}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -301,9 +207,6 @@ function ComandaModal({ tavolo, onClose, onSave }) {
 
       setComandaVisualizzata(json);
       setShowComandaVisualizzata(true);
-
-      // Carica anche gli stati dei piatti
-      setTimeout(loadStatiPiatti, 500);
     } catch (err) {
       console.error("Errore nel recupero della comanda:", err);
       alert("Errore durante il caricamento della comanda.");
@@ -316,7 +219,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       : selectedPiatti;
 
     if (!piatti || piatti.length === 0) {
-      alert("⚠ Nessun piatto selezionato per stampare la comanda.");
+      alert("❗ Nessun piatto selezionato per stampare la comanda.");
       return;
     }
 
@@ -361,15 +264,15 @@ function ComandaModal({ tavolo, onClose, onSave }) {
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-300">
         {/* Modal Content */}
         <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] flex flex-col overflow-hidden shadow-2xl border animate-in zoom-in-95 duration-300">
+          
           {/* Modal Header */}
           <div className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white px-6 py-5 flex justify-between items-center border-b">
             <h2 className="text-xl font-bold flex items-center gap-3">
               <span className="text-2xl">🍽️</span>
-              {comandaEsistente ? "Aggiorna Comanda" : "Nuova Comanda"} – Tavolo{" "}
-              {tavolo.numero}
+              {comandaEsistente ? "Aggiorna Comanda" : "Nuova Comanda"} – Tavolo {tavolo.numero}
             </h2>
-            <button
-              onClick={onClose}
+            <button 
+              onClick={onClose} 
               className="bg-white/10 hover:bg-white/20 border border-white/20 text-white w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-lg transition-all duration-200 hover:scale-105"
             >
               ×
@@ -379,177 +282,40 @@ function ComandaModal({ tavolo, onClose, onSave }) {
           {/* Modal Body */}
           <div className="flex-1 overflow-y-auto p-6">
             {showComandaVisualizzata && comandaVisualizzata ? (
-              /* Vista Comanda Attuale con Stati Cucina */
+              /* Vista Comanda Attuale */
               <div className="space-y-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🧾</span>
-                    <h3 className="text-lg font-bold text-gray-800">
-                      Comanda Attuale
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {loadingStati && (
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                        <span className="text-sm font-medium">
-                          Aggiornamento stati...
-                        </span>
-                      </div>
-                    )}
-                    <button
-                      onClick={loadStatiPiatti}
-                      disabled={loadingStati}
-                      className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200"
-                    >
-                      🔄 Aggiorna
-                    </button>
-                  </div>
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="text-2xl">🧾</span>
+                  <h3 className="text-lg font-bold text-gray-800">Comanda Attuale</h3>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4 mb-6">
                   <p className="text-gray-700 font-medium">
-                    <span className="font-bold">Coperti:</span>{" "}
-                    {comandaVisualizzata.coperti}
+                    <span className="font-bold">Coperti:</span> {comandaVisualizzata.coperti}
                   </p>
-                </div>
-
-                {/* Legenda Stati */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                  <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                    <span>📋</span>
-                    Legenda Stati Cucina
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="flex items-center gap-2">
-                      <span>🔴</span>
-                      <span className="text-sm font-medium text-red-700">
-                        Da Preparare
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>🟡</span>
-                      <span className="text-sm font-medium text-orange-700">
-                        In Preparazione
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>🟢</span>
-                      <span className="text-sm font-medium text-green-700">
-                        Pronto
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>⚫</span>
-                      <span className="text-sm font-medium text-gray-600">
-                        Servito
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
-                          Quantità
-                        </th>
-                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
-                          Piatto
-                        </th>
-                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
-                          Turno
-                        </th>
-                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
-                          Stato Cucina
-                        </th>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">Quantità</th>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">Piatto</th>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">Turno</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {comandaVisualizzata.Piatti.map((p, idx) => {
-                        // 🔍 DEBUG COMPLETO: Verifica struttura dei piatti
-                        console.log("=== PIATTO DEBUG ===");
-                        console.log("Piatto completo:", p);
-                        console.log(
-                          "Tutti i campi del piatto:",
-                          Object.keys(p)
-                        );
-                        console.log("p.id:", p.id);
-                        console.log("p.Id:", p.Id);
-                        console.log("p.piattoId:", p.piattoId);
-                        console.log("p.productId:", p.productId);
-                        console.log("p.ProductId:", p.ProductId);
-
-                        // Prova diversi campi possibili
-                        const possibiliId = [
-                          p.piattoId,
-                          p.id,
-                          p.Id,
-                          p.productId,
-                          p.ProductId,
-                        ];
-                        console.log(
-                          "Possibili ID per il matching:",
-                          possibiliId
-                        );
-
-                        // Stati disponibili
-                        console.log("Stati disponibili:", statiPiatti);
-                        console.log(
-                          "Chiavi negli stati:",
-                          Object.keys(statiPiatti)
-                        );
-
-                        // Test di matching
-                        possibiliId.forEach((testId, index) => {
-                          if (testId !== undefined) {
-                            const statoTrovato = statiPiatti[testId];
-                            console.log(
-                              `Test ${index} - ID: ${testId} (tipo: ${typeof testId}) -> Stato: ${statoTrovato}`
-                            );
-                          }
-                        });
-
-                        const piattoId =
-                          p.piattoId ||
-                          p.id ||
-                          p.Id ||
-                          p.productId ||
-                          p.ProductId;
-                        const stato = statiPiatti[piattoId] || null;
-                        const statoDisplay = getStatoDisplay(stato);
-
-                        console.log("ID finale usato:", piattoId);
-                        console.log("Stato finale trovato:", stato);
-                        console.log("===================");
-
-                        return (
-                          <tr key={idx} className="hover:bg-gray-50">
-                            <td className="py-4 px-6 font-semibold text-gray-900">
-                              {p.quantita}x
-                            </td>
-                            <td className="py-4 px-6 text-gray-800">
-                              {p.nome}
-                            </td>
-                            <td className="py-4 px-6">
-                              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
-                                {p.turno}
-                              </span>
-                            </td>
-                            <td className="py-4 px-6">
-                              <div
-                                className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${statoDisplay.className}`}
-                              >
-                                <span className="text-sm">
-                                  {statoDisplay.icon}
-                                </span>
-                                <span>{statoDisplay.text}</span>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {comandaVisualizzata.Piatti.map((p, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="py-4 px-6 font-semibold text-gray-900">{p.quantita}x</td>
+                          <td className="py-4 px-6 text-gray-800">{p.nome}</td>
+                          <td className="py-4 px-6">
+                            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                              {p.turno}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -558,56 +324,18 @@ function ComandaModal({ tavolo, onClose, onSave }) {
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-lg">📝</span>
-                      <h4 className="font-semibold text-amber-800">
-                        Note Comanda
-                      </h4>
+                      <h4 className="font-semibold text-amber-800">Note Comanda</h4>
                     </div>
-                    <p className="text-amber-700 leading-relaxed whitespace-pre-wrap">
-                      {noteComanda.trim()}
-                    </p>
+                    <p className="text-amber-700 leading-relaxed whitespace-pre-wrap">{noteComanda.trim()}</p>
                   </div>
                 )}
-
-                {/* Riepilogo Stati */}
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">
-                    📊 Riepilogo Stati
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      "da_preparare",
-                      "in_preparazione",
-                      "pronto",
-                      "servito",
-                    ].map((stato) => {
-                      const count = Object.values(statiPiatti).filter(
-                        (s) => s === stato
-                      ).length;
-                      const statoDisplay = getStatoDisplay(stato);
-
-                      return (
-                        <div key={stato} className="text-center">
-                          <div
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-semibold ${statoDisplay.className}`}
-                          >
-                            <span>{statoDisplay.icon}</span>
-                            <span className="text-xl font-bold">{count}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             ) : (
               /* Vista Standard Form */
               <div className="space-y-6">
                 {/* Coperti */}
                 <div className="bg-gray-50 rounded-xl p-5">
-                  <label
-                    htmlFor="coperti"
-                    className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"
-                  >
+                  <label htmlFor="coperti" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                     <span className="text-lg">👥</span>
                     Numero Coperti
                   </label>
@@ -750,7 +478,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
 
       {/* Modal Note */}
       {showNoteModal && (
-        <div
+        <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-in fade-in duration-300"
           onClick={() => setShowNoteModal(false)}
         >
@@ -763,7 +491,7 @@ function ComandaModal({ tavolo, onClose, onSave }) {
                 <span>📝</span>
                 Note Comanda
               </h3>
-              <button
+              <button 
                 className="bg-white/10 hover:bg-white/20 border border-white/20 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold transition-all duration-200"
                 onClick={() => setShowNoteModal(false)}
               >
@@ -812,34 +540,34 @@ function SalaPage() {
 
   // Recupera i dati dell'utente dalla sessione
   useEffect(() => {
-    const session = sessionStorage.getItem("userSession");
+    const session = sessionStorage.getItem('userSession');
     if (session) {
       setUserSession(JSON.parse(session));
     }
   }, []);
 
   useEffect(() => {
-    console.log("🔍 selectedTavolo:", selectedTavolo);
-    console.log("🔍 isModalOpen:", isModalOpen);
+    console.log("📍 selectedTavolo:", selectedTavolo);
+    console.log("📍 isModalOpen:", isModalOpen);
   }, [selectedTavolo, isModalOpen]);
 
   // Funzione per il logout
   const handleLogout = () => {
     // Conferma logout
-    if (window.confirm("Sei sicuro di voler uscire?")) {
+    if (window.confirm('Sei sicuro di voler uscire?')) {
       // Pulisce tutti i dati della sessione
-      sessionStorage.removeItem("userSession");
-      sessionStorage.removeItem("currentCameriere");
-      sessionStorage.removeItem("authToken");
-      sessionStorage.removeItem("refreshToken");
-      sessionStorage.removeItem("companyId");
-      sessionStorage.removeItem("companyName");
-      sessionStorage.removeItem("userId");
-      sessionStorage.removeItem("userEmail");
-      sessionStorage.removeItem("userRoles");
-
+      sessionStorage.removeItem('userSession');
+      sessionStorage.removeItem('currentCameriere');
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('companyId');
+      sessionStorage.removeItem('companyName');
+      sessionStorage.removeItem('userId');
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('userRoles');
+      
       // Reindirizza alla pagina di login
-      window.location.href = "/login"; // Oppure navigate('/login') se usi React router
+      window.location.href = '/login'; // Oppure navigate('/login') se usi React router
     }
   };
 
@@ -865,25 +593,19 @@ function SalaPage() {
   };
 
   // Prepara i dati utente per l'header
-  const headerUserData = userSession
-    ? {
-        nomeCompleto:
-          userSession.nomeCompleto ||
-          `${userSession.data?.user?.firstName || ""} ${
-            userSession.data?.user?.lastName || ""
-          }`.trim(),
-        companyName: userSession.data?.user?.companyName || "",
-        ruolo: userSession.ruoloSelezionato || "Cameriere",
-        email: userSession.data?.user?.email || "",
-        onLogout: handleLogout, // Passa la funzione di logout all'header
-      }
-    : {
-        nomeCompleto: "Utente",
-        companyName: "Azienda",
-        ruolo: "Cameriere",
-        email: "",
-        onLogout: handleLogout,
-      };
+  const headerUserData = userSession ? {
+    nomeCompleto: userSession.nomeCompleto || `${userSession.data?.user?.firstName || ''} ${userSession.data?.user?.lastName || ''}`.trim(),
+    companyName: userSession.data?.user?.companyName || '',
+    ruolo: userSession.ruoloSelezionato || 'Cameriere',
+    email: userSession.data?.user?.email || '',
+    onLogout: handleLogout // Passa la funzione di logout all'header
+  } : {
+    nomeCompleto: 'Utente',
+    companyName: 'Azienda',
+    ruolo: 'Cameriere',
+    email: '',
+    onLogout: handleLogout
+  };
 
   return (
     <div>
