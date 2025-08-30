@@ -50,24 +50,25 @@ function CucinaPage() {
       setLoading(true);
       setError(null);
 
-      // Chiamata API per ottenere tutti gli ordini in cucina
-      const response = await fetch(`${API_URL}/api/test/getOrdiniCucina`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327",
-        }),
-      });
+      // Chiamata API per ottenere tutti gli ordini in cucina     
+      const response = await fetch(
+        `${API_URL}/api/test/getOrdiniCucina`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            IdCompany: "4b848a8a-0f89-446d-bbd8-37468919f327",
+          }),
+        }
+      );
 
       console.log("📹 Response status:", response.status);
 
       if (!response.ok) {
-        throw new Error(
-          `Errore API: ${response.status} ${response.statusText}`
-        );
+        throw new Error(`Errore API: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -75,13 +76,13 @@ function CucinaPage() {
 
       if (data.success) {
         // Converte i timestamp per compatibilità con il codice esistente
-        const ordiniFormattati = data.ordini.map((ordine) => ({
+        const ordiniFormattati = data.ordini.map(ordine => ({
           ...ordine,
           timestampOrdine: ordine.timestampOrdine,
-          piatti: ordine.piatti.map((piatto) => ({
+          piatti: ordine.piatti.map(piatto => ({
             ...piatto,
-            timestampRichiesta: piatto.timestampRichiesta,
-          })),
+            timestampRichiesta: piatto.timestampRichiesta
+          }))
         }));
 
         setOrdiniCucina(ordiniFormattati);
@@ -104,34 +105,31 @@ function CucinaPage() {
   // Cambia stato del piatto con chiamata API reale
   const cambiaStatoPiatto = async (tavoloId, piattoId, nuovoStato) => {
     try {
-      console.log("🔄 Aggiornamento stato piatto:", {
-        tavoloId,
-        piattoId,
-        nuovoStato,
-      });
+      console.log("🔄 Aggiornamento stato piatto:", { tavoloId, piattoId, nuovoStato });
 
-      const response = await fetch(`${API_URL}/api/test/aggiornaStatoPiatto`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tavoloId: tavoloId,
-          piattoId: piattoId,
-          stato: nuovoStato,
-          timestampAggiornamento: new Date().toISOString(),
-        }),
-      });
+      const response = await fetch(
+        `${API_URL}/api/test/aggiornaStatoPiatto`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tavoloId: tavoloId,
+            piattoId: piattoId,
+            stato: nuovoStato,
+            timestampAggiornamento: new Date().toISOString(),
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(
-          `Errore API: ${response.status} ${response.statusText}`
-        );
+        throw new Error(`Errore API: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
-
+      
       if (result.success) {
         // Aggiorna lo stato locale solo se l'API ha avuto successo
         setOrdiniCucina((prev) =>
@@ -152,10 +150,10 @@ function CucinaPage() {
         );
 
         console.log("✅ Stato piatto aggiornato con successo");
-
+        
         // Mostra feedback visivo
-        const Toast = document.createElement("div");
-        Toast.className = styles.toastSuccess || "toast-success";
+        const Toast = document.createElement('div');
+        Toast.className = styles.toastSuccess || 'toast-success';
         Toast.innerHTML = `✅ Stato aggiornato: ${nuovoStato}`;
         Toast.style.cssText = `
           position: fixed;
@@ -171,18 +169,17 @@ function CucinaPage() {
         `;
         document.body.appendChild(Toast);
         setTimeout(() => document.body.removeChild(Toast), 3000);
+        
       } else {
-        throw new Error(
-          result.message || "Errore nell'aggiornamento dello stato"
-        );
+        throw new Error(result.message || "Errore nell'aggiornamento dello stato");
       }
     } catch (err) {
       console.error("❌ Errore aggiornamento stato piatto:", err);
       setError(`Errore aggiornamento: ${err.message}`);
-
+      
       // Mostra toast di errore
-      const Toast = document.createElement("div");
-      Toast.className = styles.toastError || "toast-error";
+      const Toast = document.createElement('div');
+      Toast.className = styles.toastError || 'toast-error';
       Toast.innerHTML = `❌ Errore: ${err.message}`;
       Toast.style.cssText = `
         position: fixed;
@@ -265,235 +262,6 @@ function CucinaPage() {
     if (minuti > 30) return styles.prioritaAlta;
     if (minuti > 15) return styles.prioritaMedia;
     return "";
-  };
-
-  const stampaEtichettaPiatto = (piatto) => {
-    try {
-      console.log("Stampa etichetta per piatto:", piatto);
-
-      // Crea il contenuto HTML dell'etichetta
-      const contenutoEtichetta = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Etichetta - Tavolo ${piatto.tavolo} - ${piatto.nome}</title>
-          <style>
-            @media print {
-              @page {
-                size: 58mm 40mm; /* Formato tipico etichetta termica */
-                margin: 2mm;
-              }
-              
-              body {
-                font-family: 'Courier New', monospace;
-                font-size: 12px;
-                line-height: 1.2;
-                margin: 0;
-                padding: 4px;
-                background: white;
-                color: black;
-              }
-              
-              .etichetta-container {
-                text-align: center;
-                border: 2px solid #000;
-                padding: 4px;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-              }
-              
-              .tavolo-numero {
-                font-size: 18px;
-                font-weight: bold;
-                margin-bottom: 2px;
-                text-transform: uppercase;
-              }
-              
-              .piatto-nome {
-                font-size: 14px;
-                font-weight: bold;
-                margin-bottom: 2px;
-                word-wrap: break-word;
-                hyphens: auto;
-              }
-              
-              .dettagli {
-                font-size: 10px;
-                margin-top: 2px;
-                opacity: 0.8;
-              }
-              
-              .quantita {
-                font-size: 16px;
-                font-weight: bold;
-                margin: 2px 0;
-              }
-              
-              .timestamp {
-                font-size: 8px;
-                margin-top: 2px;
-              }
-            }
-            
-            /* Stili per preview (non stampa) */
-            @media screen {
-              body {
-                font-family: 'Courier New', monospace;
-                background: #f0f0f0;
-                padding: 20px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-              }
-              
-              .etichetta-container {
-                width: 200px;
-                height: 140px;
-                background: white;
-                border: 2px solid #000;
-                padding: 8px;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-              }
-              
-              .tavolo-numero {
-                font-size: 20px;
-                font-weight: bold;
-                margin-bottom: 4px;
-              }
-              
-              .piatto-nome {
-                font-size: 16px;
-                font-weight: bold;
-                margin-bottom: 4px;
-                word-wrap: break-word;
-              }
-              
-              .quantita {
-                font-size: 18px;
-                font-weight: bold;
-                margin: 4px 0;
-                color: #e74c3c;
-              }
-              
-              .dettagli {
-                font-size: 12px;
-                margin-top: 4px;
-                color: #666;
-              }
-              
-              .timestamp {
-                font-size: 10px;
-                margin-top: 4px;
-                color: #999;
-              }
-              
-              .print-buttons {
-                position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                gap: 10px;
-              }
-              
-              .print-buttons button {
-                padding: 10px 20px;
-                font-size: 14px;
-                font-weight: bold;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-              }
-              
-              .btn-print {
-                background: linear-gradient(135deg, #27ae60, #2ecc71);
-                color: white;
-              }
-              
-              .btn-print:hover {
-                background: linear-gradient(135deg, #2ecc71, #27ae60);
-                transform: translateY(-1px);
-              }
-              
-              .btn-close {
-                background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-                color: white;
-              }
-              
-              .btn-close:hover {
-                background: linear-gradient(135deg, #7f8c8d, #95a5a6);
-                transform: translateY(-1px);
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="etichetta-container">
-            <div class="tavolo-numero">TAVOLO ${piatto.tavolo}</div>
-            <div class="piatto-nome">${piatto.nome}</div>
-            <div class="quantita">${piatto.quantita}x</div>
-            <div class="dettagli">
-              ${piatto.cameriere || "N/A"}
-            </div>
-            <div class="timestamp">
-              ${new Date(piatto.timestampRichiesta).toLocaleTimeString(
-                "it-IT",
-                {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }
-              )}
-            </div>
-          </div>
-          
-          <div class="print-buttons">
-            <button class="btn-print" onclick="window.print()">🖨️ Stampa Etichetta</button>
-            <button class="btn-close" onclick="window.close()">✕ Chiudi</button>
-          </div>
-          
-          <script>
-            // Auto-focus sulla finestra per facilitare la stampa
-            window.focus();
-            
-            // Opzionale: stampa automatica dopo un breve delay
-            // setTimeout(() => window.print(), 500);
-          </script>
-        </body>
-      </html>
-    `;
-
-      // Apre una nuova finestra con l'etichetta
-      const finestraStampa = window.open(
-        "",
-        "_blank",
-        "width=400,height=300,scrollbars=yes,resizable=yes"
-      );
-
-      if (finestraStampa) {
-        finestraStampa.document.write(contenutoEtichetta);
-        finestraStampa.document.close();
-
-        // Focus sulla nuova finestra
-        finestraStampa.focus();
-      } else {
-        alert(
-          "Impossibile aprire la finestra di stampa. Controlla che i popup non siano bloccati."
-        );
-      }
-    } catch (error) {
-      console.error("Errore durante la stampa dell'etichetta:", error);
-      alert(`Errore durante la stampa: ${error.message}`);
-    }
   };
 
   const piattiPerTurno = organizzaPiattiPerTurno();
@@ -625,28 +393,25 @@ function CucinaPage() {
       {/* Contenuto Principale */}
       <div className={styles.cucinaContent}>
         {error && (
-          <div
-            className={styles.errorBanner || "error-banner"}
-            style={{
-              background: "linear-gradient(135deg, #e74c3c, #c0392b)",
-              color: "white",
-              padding: "1rem",
-              borderRadius: "12px",
-              marginBottom: "1rem",
-              textAlign: "center",
-            }}
-          >
+          <div className={styles.errorBanner || 'error-banner'} style={{
+            background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+            color: 'white',
+            padding: '1rem',
+            borderRadius: '12px',
+            marginBottom: '1rem',
+            textAlign: 'center'
+          }}>
             ⚠️ {error}
-            <button
+            <button 
               onClick={() => setError(null)}
               style={{
-                marginLeft: "1rem",
-                background: "rgba(255,255,255,0.2)",
-                border: "none",
-                color: "white",
-                borderRadius: "4px",
-                padding: "0.25rem 0.5rem",
-                cursor: "pointer",
+                marginLeft: '1rem',
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                color: 'white',
+                borderRadius: '4px',
+                padding: '0.25rem 0.5rem',
+                cursor: 'pointer'
               }}
             >
               ✕
@@ -655,29 +420,19 @@ function CucinaPage() {
         )}
 
         {ordiniCucina.length === 0 && !loading && !error && (
-          <div
-            className={styles.nessunOrdine || "nessun-ordine"}
-            style={{
-              textAlign: "center",
-              padding: "3rem",
-              color: "#7f8c8d",
-              fontSize: "1.2rem",
-              background: "white",
-              borderRadius: "16px",
-              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
-            }}
-          >
+          <div className={styles.nessunOrdine || 'nessun-ordine'} style={{
+            textAlign: 'center',
+            padding: '3rem',
+            color: '#7f8c8d',
+            fontSize: '1.2rem',
+            background: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)'
+          }}>
             😴 Nessun ordine in cucina al momento
             <br />
-            <small
-              style={{
-                fontSize: "1rem",
-                marginTop: "0.5rem",
-                display: "block",
-              }}
-            >
-              Gli ordini appariranno qui quando i camerieri li invieranno in
-              cucina
+            <small style={{ fontSize: '1rem', marginTop: '0.5rem', display: 'block' }}>
+              Gli ordini appariranno qui quando i camerieri li invieranno in cucina
             </small>
           </div>
         )}
@@ -738,11 +493,7 @@ function CucinaPage() {
                       <div className={styles.piattoNome}>{piatto.nome}</div>
 
                       {/* Stato attuale del piatto */}
-                      <div
-                        className={`${styles.statoAttuale} ${getStatoColor(
-                          piatto.stato
-                        )}`}
-                      >
+                      <div className={`${styles.statoAttuale} ${getStatoColor(piatto.stato)}`}>
                         <span className={styles.statoIcon}>
                           {piatto.stato === "da_preparare" && "🔴"}
                           {piatto.stato === "in_preparazione" && "🟡"}
@@ -751,8 +502,7 @@ function CucinaPage() {
                         </span>
                         <span className={styles.statoText}>
                           {piatto.stato === "da_preparare" && "DA PREPARARE"}
-                          {piatto.stato === "in_preparazione" &&
-                            "IN PREPARAZIONE"}
+                          {piatto.stato === "in_preparazione" && "IN PREPARAZIONE"}
                           {piatto.stato === "pronto" && "PRONTO"}
                           {piatto.stato === "servito" && "SERVITO"}
                         </span>

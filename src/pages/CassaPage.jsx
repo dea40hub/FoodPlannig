@@ -38,6 +38,7 @@ function CassaPage() {
 
   const [isEmettendoScontrino, setIsEmettendoScontrino] = useState(false);
   const [tipoPagamento, setTipoPagamento] = useState("contanti");
+  const [isEmettendoPreconto, setIsEmettendoPreconto] = useState(false);
 
   // NUOVI STATI PER PAGAMENTO MISTO
   const [importoContanti, setImportoContanti] = useState("");
@@ -637,6 +638,75 @@ function CassaPage() {
     }
   };
 
+  const handleEmettiPreconto = async () => {
+    setIsEmettendoPreconto(true);
+
+    try {
+      if (currentOrder.length === 0) {
+        alert("Nessun articolo da emettere nel preconto.");
+        return;
+      }
+
+      // VALIDAZIONE PAGAMENTO MISTO anche per preconto
+      if (!validaPagamentoMisto()) {
+        alert(
+          "ERRORE: La somma degli importi non corrisponde al totale del preconto!"
+        );
+        return;
+      }
+
+      // Simula l'emissione del preconto (qui implementerai la logica specifica)
+      console.log("📋 Emettendo preconto...", {
+        ordine: currentOrder,
+        totale: orderTotal,
+        tipoPagamento: tipoPagamento,
+        tavolo: selectedTable,
+      });
+
+      // Simula un delay per l'API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Messaggio di successo
+      let tipoPagamentoText = "";
+      switch (tipoPagamento) {
+        case "contanti":
+          tipoPagamentoText = "Contanti";
+          break;
+        case "elettronico":
+          tipoPagamentoText = "Elettronico";
+          break;
+        case "misto":
+          const contanti = parseFloat(importoContanti) || 0;
+          const elettronico = parseFloat(importoElettronico) || 0;
+          tipoPagamentoText = `Misto (€${contanti.toFixed(
+            2
+          )} contanti + €${elettronico.toFixed(2)} elettronico)`;
+          break;
+        default:
+          tipoPagamentoText = "Non specificato";
+      }
+
+      alert(
+        `✅ Preconto emesso con successo!\nPagamento: ${tipoPagamentoText}\nTotale: €${orderTotal.toFixed(
+          2
+        )}`
+      );
+
+      // Opzionalmente puoi decidere se pulire l'ordine anche per il preconto
+      // setCurrentOrder([]);
+      // setOrderTotal(0);
+      // setImportoContanti("");
+      // setImportoElettronico("");
+
+      setShowScontrinoModal(false);
+    } catch (error) {
+      console.error("❌ Errore durante emissione preconto:", error);
+      alert(`Errore durante l'emissione del preconto: ${error.message}`);
+    } finally {
+      setIsEmettendoPreconto(false);
+    }
+  };
+
   return (
     <div className="cassa-page">
       <header className="cassa-header">
@@ -1150,7 +1220,10 @@ function CassaPage() {
               <button
                 className="btn btn-primary"
                 onClick={() => setShowScontrinoModal(false)}
-                style={{ marginTop: 20 }}
+                style={{
+                  marginTop: 20,
+                  width: "100%",
+                }}
               >
                 Chiudi Anteprima
               </button>
@@ -1160,25 +1233,30 @@ function CassaPage() {
                 onClick={handleEmettiScontrino}
                 disabled={
                   isEmettendoScontrino ||
+                  isEmettendoPreconto ||
                   currentOrder.length === 0 ||
                   !validaPagamentoMisto()
                 }
                 style={{
                   marginTop: 10,
+                  width: "100%",
                   backgroundColor:
                     isEmettendoScontrino ||
+                    isEmettendoPreconto ||
                     currentOrder.length === 0 ||
                     !validaPagamentoMisto()
                       ? "#6c757d"
                       : "#28a745",
                   cursor:
                     isEmettendoScontrino ||
+                    isEmettendoPreconto ||
                     currentOrder.length === 0 ||
                     !validaPagamentoMisto()
                       ? "not-allowed"
                       : "pointer",
                   opacity:
                     isEmettendoScontrino ||
+                    isEmettendoPreconto ||
                     currentOrder.length === 0 ||
                     !validaPagamentoMisto()
                       ? 0.6
@@ -1205,6 +1283,80 @@ function CassaPage() {
                   "🧾 Emetti Scontrino"
                 )}
               </button>
+
+              {/* NUOVO PULSANTE EMETTI PRECONTO */}
+              <button
+                className="btn btn-primary"
+                onClick={handleEmettiPreconto}
+                disabled={
+                  isEmettendoScontrino ||
+                  isEmettendoPreconto ||
+                  currentOrder.length === 0 ||
+                  !validaPagamentoMisto()
+                }
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  backgroundColor:
+                    isEmettendoScontrino ||
+                    isEmettendoPreconto ||
+                    currentOrder.length === 0 ||
+                    !validaPagamentoMisto()
+                      ? "#6c757d"
+                      : "#007bff", // Colore blu per distinguerlo dallo scontrino
+                  cursor:
+                    isEmettendoScontrino ||
+                    isEmettendoPreconto ||
+                    currentOrder.length === 0 ||
+                    !validaPagamentoMisto()
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    isEmettendoScontrino ||
+                    isEmettendoPreconto ||
+                    currentOrder.length === 0 ||
+                    !validaPagamentoMisto()
+                      ? 0.6
+                      : 1,
+                }}
+              >
+                {isEmettendoPreconto ? (
+                  <>
+                    <span>Emettendo Preconto...</span>
+                    <div
+                      style={{
+                        display: "inline-block",
+                        marginLeft: "8px",
+                        width: "12px",
+                        height: "12px",
+                        border: "2px solid #ffffff",
+                        borderTop: "2px solid transparent",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    ></div>
+                  </>
+                ) : (
+                  "📋 Emetti Preconto"
+                )}
+              </button>
+
+              {/* Messaggio di errore se pagamento misto non valido - resta uguale */}
+              {tipoPagamento === "misto" && !validaPagamentoMisto() && (
+                <div
+                  style={{
+                    marginTop: "10px",
+                    padding: "8px",
+                    backgroundColor: "#ffe6e6",
+                    border: "1px solid #ff9999",
+                    borderRadius: "4px",
+                    fontSize: "11px",
+                    color: "#cc0000",
+                  }}
+                >
+                  ⚠️ Verificare gli importi del pagamento misto
+                </div>
+              )}
 
               {/* Messaggio di errore se pagamento misto non valido */}
               {tipoPagamento === "misto" && !validaPagamentoMisto() && (
